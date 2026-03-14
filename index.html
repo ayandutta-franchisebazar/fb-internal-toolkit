@@ -1,0 +1,3389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FDA Agreement Builder — Sparkleminds</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+<style>
+  :root {
+    --ink: #1a1510;
+    --ink-2: #3d3428;
+    --ink-3: #6b5f52;
+    --parchment: #faf7f2;
+    --cream: #f4ede0;
+    --gold: #c8962a;
+    --gold-light: #e8b84b;
+    --gold-dark: #9b6f1a;
+    --red: #b83232;
+    --border: #d4c5a9;
+    --border-light: #e8dcc8;
+    --white: #ffffff;
+    --shadow: 0 2px 12px rgba(26,21,16,0.1);
+    --shadow-lg: 0 8px 40px rgba(26,21,16,0.15);
+    --radius: 4px;
+    --sidebar-w: 280px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: var(--ink);
+    color: var(--gold-light);
+    padding: 0 32px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.3);
+  }
+  .topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .topbar-brand .logo-icon {
+    width: 32px; height: 32px;
+    background: var(--gold);
+    border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--ink);
+    font-weight: bold;
+  }
+  .topbar-brand h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--white);
+    letter-spacing: 0.5px;
+  }
+  .topbar-brand span {
+    font-size: 11px;
+    color: var(--gold-light);
+    opacity: 0.7;
+    font-weight: 300;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .topbar-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .btn {
+    padding: 8px 18px;
+    border-radius: var(--radius);
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--gold-light);
+    border: 1px solid rgba(200,150,42,0.4);
+  }
+  .btn-ghost:hover { background: rgba(200,150,42,0.15); border-color: var(--gold-light); }
+  .btn-gold {
+    background: var(--gold);
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .btn-gold:hover { background: var(--gold-light); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(200,150,42,0.4); }
+  .btn-danger {
+    background: var(--red);
+    color: white;
+    font-weight: 600;
+  }
+  .btn-danger:hover { background: #c94444; }
+  .btn-outline {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--ink-2);
+  }
+  .btn-outline:hover { border-color: var(--gold); color: var(--gold-dark); background: rgba(200,150,42,0.05); }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+  /* ── LAYOUT ── */
+  .app-body {
+    display: flex;
+    flex: 1;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--white);
+    border-right: 1px solid var(--border-light);
+    overflow-y: auto;
+    flex-shrink: 0;
+    position: sticky;
+    top: 56px;
+    height: calc(100vh - 56px);
+  }
+  .sidebar-head {
+    padding: 20px 20px 12px;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .sidebar-head h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 14px;
+    color: var(--ink-2);
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .sidebar-head p {
+    font-size: 11px;
+    color: var(--ink-3);
+  }
+  .sidebar-progress {
+    margin: 12px 20px;
+    background: var(--border-light);
+    height: 4px;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .sidebar-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold-dark), var(--gold-light));
+    border-radius: 2px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+  .sidebar-progress-label {
+    font-size: 10px;
+    color: var(--ink-3);
+    text-align: right;
+    margin: 4px 20px 0;
+  }
+  .nav-section {
+    padding: 14px 0 0;
+  }
+  .nav-section-title {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: 0 20px 8px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 20px;
+    cursor: pointer;
+    font-size: 12.5px;
+    color: var(--ink-2);
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+    position: relative;
+  }
+  .nav-item:hover { background: var(--cream); color: var(--ink); }
+  .nav-item.active {
+    background: #fdf3e0;
+    color: var(--gold-dark);
+    border-left-color: var(--gold);
+    font-weight: 500;
+  }
+  .nav-item .nav-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .nav-item.filled .nav-dot { background: var(--gold); }
+  .nav-item.active .nav-dot { background: var(--gold); box-shadow: 0 0 0 2px rgba(200,150,42,0.3); }
+  .nav-item .nav-num {
+    font-size: 10px;
+    color: var(--ink-3);
+    margin-left: auto;
+    font-weight: 300;
+  }
+
+  /* ── MAIN CONTENT ── */
+  .main-content {
+    flex: 1;
+    overflow-y: auto;
+    max-width: calc(100% - var(--sidebar-w));
+  }
+  .content-header {
+    padding: 32px 40px 24px;
+    border-bottom: 1px solid var(--border-light);
+    background: var(--white);
+  }
+  .content-header .step-badge {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold-dark);
+    background: #fdf3e0;
+    border: 1px solid rgba(200,150,42,0.3);
+    padding: 3px 10px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+  .content-header h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .content-header p {
+    font-size: 13.5px;
+    color: var(--ink-3);
+    max-width: 600px;
+    line-height: 1.6;
+  }
+
+  .form-area {
+    padding: 32px 40px;
+  }
+
+  /* ── FORM CARDS ── */
+  .form-card {
+    background: var(--white);
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    margin-bottom: 24px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .form-card-head {
+    padding: 16px 24px;
+    background: var(--parchment);
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .form-card-head h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 15px;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .form-card-head h3 .card-icon {
+    font-size: 16px;
+    opacity: 0.8;
+  }
+  .form-card-body {
+    padding: 24px;
+  }
+
+  /* ── FORM FIELDS ── */
+  .form-row {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .form-row.cols-2 { grid-template-columns: 1fr 1fr; }
+  .form-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .form-row.cols-1 { grid-template-columns: 1fr; }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  label {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--ink-2);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  label .req { color: var(--red); margin-left: 2px; }
+  label .hint {
+    font-size: 10px;
+    color: var(--ink-3);
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    margin-left: 6px;
+  }
+
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="date"],
+  textarea,
+  select {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13.5px;
+    color: var(--ink);
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+  }
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(200,150,42,0.12);
+  }
+  input.filled, textarea.filled, select.filled {
+    border-color: #a8c49a;
+    background: #f8fdf6;
+  }
+  textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+
+  .currency-input {
+    display: flex;
+    align-items: center;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background: var(--white);
+  }
+  .currency-input:focus-within {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(200,150,42,0.12);
+  }
+  .currency-input .symbol {
+    padding: 9px 10px 9px 12px;
+    background: var(--parchment);
+    color: var(--ink-3);
+    font-size: 13px;
+    border-right: 1px solid var(--border-light);
+    white-space: nowrap;
+    font-weight: 500;
+  }
+  .currency-input input {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none;
+    flex: 1;
+    padding: 9px 12px;
+    font-size: 13.5px;
+  }
+
+  /* ── AMOUNT WORDS ── */
+  .amount-words {
+    font-size: 11px;
+    color: var(--gold-dark);
+    font-style: italic;
+    margin-top: 4px;
+    min-height: 16px;
+  }
+
+  /* ── EDITABLE CLAUSES ── */
+  .clause-editor {
+    border: 1.5px solid var(--border-light);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .clause-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: var(--parchment);
+    border-bottom: 1px solid var(--border-light);
+  }
+  .clause-toolbar-left {
+    display: flex;
+    gap: 6px;
+  }
+  .clause-tool-btn {
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    background: var(--white);
+    border-radius: 3px;
+    font-size: 11px;
+    cursor: pointer;
+    color: var(--ink-2);
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .clause-tool-btn:hover { background: var(--cream); border-color: var(--gold); color: var(--gold-dark); }
+  .clause-tool-btn.active { background: var(--gold); color: var(--ink); border-color: var(--gold-dark); }
+  .clause-reset-btn {
+    font-size: 10px;
+    color: var(--ink-3);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    padding: 3px 6px;
+    border-radius: 3px;
+    transition: all 0.15s;
+  }
+  .clause-reset-btn:hover { background: rgba(184,50,50,0.08); color: var(--red); }
+  .clause-content[contenteditable="true"] {
+    padding: 14px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--ink);
+    min-height: 80px;
+    outline: none;
+    background: var(--white);
+  }
+  .clause-content[contenteditable="true"]:focus {
+    background: #fffdf7;
+  }
+
+  /* ── PREVIEW ── */
+  .preview-panel {
+    background: var(--white);
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+  }
+  .preview-header {
+    padding: 14px 24px;
+    background: var(--ink);
+    color: var(--gold-light);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .preview-header h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+  }
+  #doc-preview {
+    padding: 48px;
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--ink);
+    max-height: 600px;
+    overflow-y: auto;
+    font-family: 'DM Serif Display', serif;
+  }
+  #doc-preview h1, #doc-preview h2 {
+    font-family: 'DM Serif Display', serif;
+    text-align: center;
+    margin: 24px 0 12px;
+  }
+  #doc-preview h3 {
+    font-family: 'DM Serif Display', serif;
+    margin: 20px 0 8px;
+    font-size: 14px;
+  }
+  #doc-preview p { margin-bottom: 12px; }
+  #doc-preview .doc-title {
+    font-size: 18px;
+    font-weight: bold;
+    text-decoration: underline;
+    text-align: center;
+    margin-bottom: 24px;
+    letter-spacing: 2px;
+  }
+  #doc-preview .doc-section {
+    margin: 18px 0;
+    padding: 14px 18px;
+    border-left: 3px solid var(--border-light);
+  }
+  #doc-preview .doc-section:hover {
+    border-left-color: var(--gold);
+    background: rgba(200,150,42,0.03);
+  }
+  #doc-preview .placeholder {
+    color: var(--red);
+    background: rgba(184,50,50,0.08);
+    border-radius: 2px;
+    padding: 0 3px;
+    font-style: italic;
+  }
+  #doc-preview table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+  }
+  #doc-preview td {
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    font-size: 12px;
+    vertical-align: top;
+  }
+  #doc-preview td:first-child { width: 50%; }
+
+  /* ── TABS ── */
+  .tab-bar {
+    display: flex;
+    border-bottom: 2px solid var(--border-light);
+    margin-bottom: 24px;
+    gap: 0;
+  }
+  .tab-btn {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--ink-3);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { color: var(--ink); }
+  .tab-btn.active {
+    color: var(--gold-dark);
+    border-bottom-color: var(--gold);
+    font-weight: 600;
+  }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── TOAST ── */
+  .toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .toast {
+    padding: 12px 18px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    animation: slideIn 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 280px;
+  }
+  .toast.success { background: #1e3a1e; color: #90e890; border: 1px solid #2d5a2d; }
+  .toast.error { background: #3a1e1e; color: #e89090; border: 1px solid #5a2d2d; }
+  .toast.info { background: var(--ink); color: var(--gold-light); border: 1px solid rgba(200,150,42,0.3); }
+  @keyframes slideIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; transform: translateX(20px); } }
+
+  /* ── FEE TABLE ── */
+  .fee-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 8px;
+  }
+  .fee-table th {
+    background: var(--parchment);
+    color: var(--ink-2);
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--border-light);
+  }
+  .fee-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-light);
+    vertical-align: top;
+  }
+  .fee-table tr:last-child td { border-bottom: none; }
+  .fee-table .total-row td { font-weight: 600; background: #fdf3e0; }
+
+  /* ── MODEL TOGGLE ── */
+  .toggle-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .toggle-chip {
+    padding: 6px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--ink-3);
+    transition: all 0.2s;
+    background: var(--white);
+    user-select: none;
+  }
+  .toggle-chip:hover { border-color: var(--gold); color: var(--gold-dark); }
+  .toggle-chip.selected {
+    background: var(--gold);
+    border-color: var(--gold-dark);
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* ── INFO BOX ── */
+  .info-box {
+    background: #f8f4e8;
+    border: 1px solid rgba(200,150,42,0.35);
+    border-left: 4px solid var(--gold);
+    border-radius: 4px;
+    padding: 12px 16px;
+    font-size: 12.5px;
+    color: var(--ink-2);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  .info-box strong { color: var(--gold-dark); }
+
+  /* ── SECTION PAGES ── */
+  .section-page { display: none; }
+  .section-page.active { display: block; }
+
+  /* ── STEP FOOTER ── */
+  .step-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    border-top: 1px solid var(--border-light);
+    background: var(--white);
+    position: sticky;
+    bottom: 0;
+  }
+  .step-footer .step-info {
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: var(--border-light);
+    margin: 20px 0;
+  }
+
+  /* ── BADGE ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .badge-gold { background: #fdf3e0; color: var(--gold-dark); border: 1px solid rgba(200,150,42,0.3); }
+  .badge-green { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+
+  /* ── SIGNATURE BLOCK ── */
+  .sig-block {
+    border: 1.5px dashed var(--border);
+    border-radius: 4px;
+    padding: 20px;
+    text-align: center;
+    background: var(--parchment);
+  }
+  .sig-block p { font-size: 12px; color: var(--ink-3); }
+
+  /* ── DOWNLOAD SECTION ── */
+  .download-card {
+    background: linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 100%);
+    border-radius: 8px;
+    padding: 32px;
+    color: var(--white);
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .download-card h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--gold-light);
+    margin-bottom: 8px;
+  }
+  .download-card p { font-size: 13px; opacity: 0.75; margin-bottom: 24px; }
+  .download-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--ink-3); }
+
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main-content { max-width: 100%; }
+    .form-row.cols-2, .form-row.cols-3 { grid-template-columns: 1fr; }
+  }
+
+  /* ═══════════════════════════════════════════════════
+     PRINT / PDF STYLES
+     ═══════════════════════════════════════════════════ */
+  @media print {
+    /* Hide all app chrome */
+    .topbar, .sidebar, .step-footer, .download-card,
+    .tab-bar, #tab-plaintext, #tab-checklist,
+    .preview-header { display: none !important; }
+
+    /* Full-width layout */
+    body { background: #fff !important; font-family: 'Times New Roman', serif !important; }
+    .app-body { display: block !important; }
+    .main-content { max-width: 100% !important; overflow: visible !important; }
+    .section-page { display: none !important; }
+    #page-download { display: block !important; }
+    .tab-content { display: none !important; }
+    #tab-preview { display: block !important; }
+    .preview-panel { border: none !important; box-shadow: none !important; }
+
+    /* Document body */
+    #doc-preview {
+      padding: 0 !important;
+      max-height: none !important;
+      overflow: visible !important;
+      font-size: 11pt !important;
+      line-height: 1.7 !important;
+      color: #000 !important;
+    }
+
+    /* Page settings */
+    @page {
+      size: A4;
+      margin: 22mm 20mm 32mm 25mm;
+    }
+
+    /* Running signature footer on every page */
+    @page {
+      @bottom-left {
+        content: "SM Initials: ___________";
+        font-size: 8pt;
+        font-family: 'Times New Roman', serif;
+        color: #444;
+        border-top: 0.5pt solid #999;
+        padding-top: 4pt;
+      }
+      @bottom-center {
+        content: counter(page) " of " counter(pages);
+        font-size: 8pt;
+        font-family: 'Times New Roman', serif;
+        color: #444;
+      }
+      @bottom-right {
+        content: "Client Initials: ___________";
+        font-size: 8pt;
+        font-family: 'Times New Roman', serif;
+        color: #444;
+        border-top: 0.5pt solid #999;
+        padding-top: 4pt;
+      }
+    }
+
+    /* Page break controls — prevent orphan headings */
+    .print-section {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .print-heading {
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+    .print-heading + * {
+      page-break-before: avoid;
+      break-before: avoid;
+    }
+
+    /* Each section block stays together if it fits */
+    .doc-clause-block {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      orphans: 4;
+      widows: 4;
+    }
+
+    /* Paragraphs */
+    p {
+      orphans: 3;
+      widows: 3;
+    }
+
+    /* Tables stay together */
+    table {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      width: 100% !important;
+    }
+
+    /* Signature page always on new page */
+    .print-sig-page {
+      page-break-before: always;
+      break-before: page;
+    }
+
+    /* Preview doc styles for print */
+    #doc-preview .doc-title {
+      font-size: 15pt !important;
+      text-align: center !important;
+      font-weight: bold !important;
+      text-decoration: underline !important;
+      letter-spacing: 2px !important;
+      margin-bottom: 20pt !important;
+    }
+    #doc-preview h3 {
+      font-size: 11pt !important;
+      font-weight: bold !important;
+      margin-top: 14pt !important;
+      margin-bottom: 5pt !important;
+      page-break-after: avoid !important;
+    }
+    #doc-preview .doc-section {
+      border-left: none !important;
+      padding: 0 !important;
+      margin: 6pt 0 !important;
+    }
+    #doc-preview table td {
+      font-size: 10pt !important;
+      padding: 6pt !important;
+    }
+    #doc-preview .placeholder {
+      color: #cc0000 !important;
+      background: none !important;
+    }
+
+    /* Per-page signature strip (CSS fallback since @page running is browser-dependent) */
+    .page-sig-strip {
+      display: flex !important;
+      justify-content: space-between;
+      border-top: 1pt solid #aaa;
+      padding-top: 4pt;
+      font-size: 8pt;
+      color: #555;
+      margin-top: 2pt;
+      position: running(sigstrip);
+    }
+  }
+</style>
+
+<!-- Print-only per-page signature running footer fallback -->
+<style id="print-sig-style"></style>
+
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <div class="logo-icon">S</div>
+    <div>
+      <h1>Sparkleminds</h1>
+      <span>FDA Builder</span>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <button class="btn btn-ghost" onclick="loadSaved()">📂 Load Draft</button>
+    <button class="btn btn-ghost" onclick="saveDraft()">💾 Save Draft</button>
+    <button class="btn btn-gold" onclick="goToPage('download')">⬇ Generate Agreement</button>
+  </div>
+</header>
+
+<!-- MAIN APP -->
+<div class="app-body">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-head">
+      <h2>Agreement Sections</h2>
+      <p>Fill all sections to generate</p>
+    </div>
+    <div class="sidebar-progress"><div class="sidebar-progress-bar" id="progress-bar"></div></div>
+    <div class="sidebar-progress-label" id="progress-label">0% complete</div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">Parties & Basics</div>
+      <div class="nav-item active" onclick="goToPage('basics')" id="nav-basics">
+        <span class="nav-dot"></span> Agreement Details <span class="nav-num">§0</span>
+      </div>
+      <div class="nav-item" onclick="goToPage('consultant')" id="nav-consultant">
+        <span class="nav-dot"></span> Consultant — SM <span class="nav-num">§1</span>
+      </div>
+      <div class="nav-item" onclick="goToPage('client')" id="nav-client">
+        <span class="nav-dot"></span> Client / Company <span class="nav-num">§2</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">Services</div>
+      <div class="nav-item" onclick="goToPage('services')" id="nav-services">
+        <span class="nav-dot"></span> Scope of Services <span class="nav-num">§3–8</span>
+      </div>
+      <div class="nav-item" onclick="goToPage('payments')" id="nav-payments">
+        <span class="nav-dot"></span> Fees & Payments <span class="nav-num">§9</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">Legal Clauses</div>
+      <div class="nav-item" onclick="goToPage('clauses')" id="nav-clauses">
+        <span class="nav-dot"></span> Standard Clauses <span class="nav-num">§10–14</span>
+      </div>
+      <div class="nav-item" onclick="goToPage('validity')" id="nav-validity">
+        <span class="nav-dot"></span> Validity & Termination <span class="nav-num">§15</span>
+      </div>
+      <div class="nav-item" onclick="goToPage('dispute')" id="nav-dispute">
+        <span class="nav-dot"></span> Notice & Dispute <span class="nav-num">§16–17</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">Signatures</div>
+      <div class="nav-item" onclick="goToPage('witnesses')" id="nav-witnesses">
+        <span class="nav-dot"></span> Witnesses <span class="nav-num">§18</span>
+      </div>
+      <div class="nav-item" onclick="goToPage('download')" id="nav-download">
+        <span class="nav-dot"></span> Generate & Download
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main-content">
+
+    <!-- ══════════ PAGE: BASICS ══════════ -->
+    <div class="section-page active" id="page-basics">
+      <div class="content-header">
+        <span class="step-badge">Section 0</span>
+        <h2>Agreement Details</h2>
+        <p>Set the execution date and agreement identification details. These appear at the very top of the document.</p>
+      </div>
+      <div class="form-area">
+        <div class="form-card">
+          <div class="form-card-head">
+            <h3><span class="card-icon">📋</span> Agreement Header</h3>
+          </div>
+          <div class="form-card-body">
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>Agreement Date <span class="req">*</span></label>
+                <input type="date" id="agr-date" onchange="markFilled(this); updateProgress()" />
+              </div>
+              <div class="field-group">
+                <label>Agreement Reference / ID <span class="hint">(optional)</span></label>
+                <input type="text" id="agr-ref" placeholder="e.g. SM/FDA/2026/001" onchange="markFilled(this)" />
+              </div>
+            </div>
+            <div class="form-row cols-1">
+              <div class="field-group">
+                <label>Agreement Title</label>
+                <input type="text" id="agr-title" value="FRANCHISE DEVELOPMENT AGREEMENT" onchange="markFilled(this)" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step-footer">
+        <div class="step-info">Step 1 of 9</div>
+        <button class="btn btn-gold" onclick="goToPage('consultant')">Next: Consultant Details →</button>
+      </div>
+    </div>
+
+    <!-- ══════════ PAGE: CONSULTANT ══════════ -->
+    <div class="section-page" id="page-consultant">
+      <div class="content-header">
+        <span class="step-badge">Section 1</span>
+        <h2>Consultant — Sparkleminds</h2>
+        <p>Details of the Consultant party (SM). Pre-filled with standard Sparkleminds details. Edit if needed.</p>
+      </div>
+      <div class="form-area">
+        <div class="info-box">ℹ️ These fields are <strong>pre-filled</strong> with default Sparkleminds details. You can edit them if the registered address or personnel changes.</div>
+        <div class="form-card">
+          <div class="form-card-head"><h3><span class="card-icon">🏢</span> Company Details</h3></div>
+          <div class="form-card-body">
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>Company Name <span class="req">*</span></label>
+                <input type="text" id="sm-name" value="Sparkleminds" onchange="markFilled(this)" />
+              </div>
+              <div class="field-group">
+                <label>Referred As <span class="hint">in agreement</span></label>
+                <input type="text" id="sm-alias" value="Consultant/SM" onchange="markFilled(this)" />
+              </div>
+            </div>
+            <div class="form-row cols-1">
+              <div class="field-group">
+                <label>Registered Address <span class="req">*</span></label>
+                <textarea id="sm-address" rows="3" onchange="markFilled(this)">#307 Swiss Complex, 33 Race Course Road, Bangalore-560001, Karnataka, India</textarea>
+              </div>
+            </div>
+            <div class="form-row cols-3">
+              <div class="field-group">
+                <label>Authorized Signatory Name <span class="req">*</span></label>
+                <input type="text" id="sm-signatory" value="Amit Nahar" onchange="markFilled(this)" />
+              </div>
+              <div class="field-group">
+                <label>Designation</label>
+                <input type="text" id="sm-designation" value="CEO" onchange="markFilled(this)" />
+              </div>
+              <div class="field-group">
+                <label>City</label>
+                <input type="text" id="sm-city" value="Bangalore" onchange="markFilled(this)" />
+              </div>
+            </div>
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>Email</label>
+                <input type="email" id="sm-email" value="amit@sparkleminds.com" onchange="markFilled(this)" />
+              </div>
+              <div class="field-group">
+                <label>Website / Phone <span class="hint">(optional)</span></label>
+                <input type="text" id="sm-phone" placeholder="www.sparkleminds.com" onchange="markFilled(this)" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step-footer">
+        <button class="btn btn-outline" onclick="goToPage('basics')">← Back</button>
+        <button class="btn btn-gold" onclick="goToPage('client')">Next: Client Details →</button>
+      </div>
+    </div>
+
+    <!-- ══════════ PAGE: CLIENT ══════════ -->
+    <div class="section-page" id="page-client">
+      <div class="content-header">
+        <span class="step-badge">Section 2</span>
+        <h2>Client / Company Details</h2>
+        <p>Enter the details of the Client who is entering into this agreement with Sparkleminds.</p>
+      </div>
+      <div class="form-area">
+        <div class="form-card">
+          <div class="form-card-head"><h3><span class="card-icon">👤</span> Client Company</h3></div>
+          <div class="form-card-body">
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>Company / Brand Name <span class="req">*</span></label>
+                <input type="text" id="cl-name" placeholder="e.g. Dhansamrat" onchange="markFilled(this); updateProgress()" />
+              </div>
+              <div class="field-group">
+                <label>Referred As <span class="hint">in agreement</span></label>
+                <input type="text" id="cl-alias" value="Company/Client" onchange="markFilled(this)" />
+              </div>
+            </div>
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>CIN / Registration Number <span class="hint">(optional)</span></label>
+                <input type="text" id="cl-cin" placeholder="e.g. U72900MH2019PTC331329" onchange="markFilled(this)" />
+              </div>
+              <div class="field-group">
+                <label>Entity Type</label>
+                <select id="cl-entity" onchange="markFilled(this)">
+                  <option value="Private Limited Company">Private Limited Company</option>
+                  <option value="Limited Liability Partnership">Limited Liability Partnership</option>
+                  <option value="Partnership Firm">Partnership Firm</option>
+                  <option value="Proprietorship">Proprietorship</option>
+                  <option value="One Person Company">One Person Company</option>
+                  <option value="Public Limited Company">Public Limited Company</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row cols-1">
+              <div class="field-group">
+                <label>Registered Office Address <span class="req">*</span></label>
+                <textarea id="cl-address" rows="3" placeholder="Full registered address including city, state and PIN code" onchange="markFilled(this)"></textarea>
+              </div>
+            </div>
+            <div class="form-row cols-3">
+              <div class="field-group">
+                <label>Authorized Signatory Name <span class="req">*</span></label>
+                <input type="text" id="cl-signatory" placeholder="Full name" onchange="markFilled(this)" />
+              </div>
+              <div class="field-group">
+                <label>Designation / Title <span class="req">*</span></label>
+                <input type="text" id="cl-designation" placeholder="e.g. Proprietor, Director, MD" onchange="markFilled(this)" />
+              </div>
+              <div class="field-group">
+                <label>City</label>
+                <input type="text" id="cl-city" placeholder="City" onchange="markFilled(this)" />
+              </div>
+            </div>
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>Email <span class="req">*</span></label>
+                <input type="email" id="cl-email" placeholder="contact@company.com" onchange="markFilled(this)" />
+              </div>
+              <div class="field-group">
+                <label>Phone / Mobile</label>
+                <input type="text" id="cl-phone" placeholder="+91 XXXXX XXXXX" onchange="markFilled(this)" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step-footer">
+        <button class="btn btn-outline" onclick="goToPage('consultant')">← Back</button>
+        <button class="btn btn-gold" onclick="goToPage('services')">Next: Services Scope →</button>
+      </div>
+    </div>
+
+    <!-- ══════════ PAGE: SERVICES ══════════ -->
+    <div class="section-page" id="page-services">
+      <div class="content-header">
+        <span class="step-badge">Sections 3–8</span>
+        <h2>Scope of Services</h2>
+        <p>Review and customize each service clause. Click the text area to edit any clause directly.</p>
+      </div>
+      <div class="form-area">
+
+        <div id="service-clauses-container">
+          <!-- Dynamically built -->
+        </div>
+
+        <div class="form-card">
+          <div class="form-card-head"><h3><span class="card-icon">⚙️</span> Meeting Preferences</h3></div>
+          <div class="form-card-body">
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>Primary Meeting Mode</label>
+                <select id="meeting-mode" onchange="markFilled(this)">
+                  <option>Teams / Google Meet</option>
+                  <option>Zoom</option>
+                  <option>In-person only</option>
+                  <option>Any mutually agreed platform</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label>No. of Consultants for Site Visit</label>
+                <select id="site-visit-consultants" onchange="markFilled(this)">
+                  <option value="two">Two (2)</option>
+                  <option value="one">One (1)</option>
+                  <option value="three">Three (3)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step-footer">
+        <button class="btn btn-outline" onclick="goToPage('client')">← Back</button>
+        <button class="btn btn-gold" onclick="goToPage('payments')">Next: Fees & Payments →</button>
+      </div>
+    </div>
+
+    <!-- ══════════ PAGE: PAYMENTS ══════════ -->
+    <div class="section-page" id="page-payments">
+      <div class="content-header">
+        <span class="step-badge">Section 9</span>
+        <h2>Fees &amp; Payments</h2>
+        <p>Configure all fee structures. Amount-in-words will be computed automatically.</p>
+      </div>
+      <div class="form-area">
+
+        <!-- Consulting Fee -->
+        <div class="form-card">
+          <div class="form-card-head">
+            <h3><span class="card-icon">💼</span> I. Consulting Fee</h3>
+            <span class="badge badge-gold">Franchise Marketing Kit</span>
+          </div>
+          <div class="form-card-body">
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>Total Consulting Fee (INR) <span class="req">*</span></label>
+                <div class="currency-input">
+                  <span class="symbol">₹</span>
+                  <input type="number" id="fee-consulting-total" value="200000" oninput="calcWords('fee-consulting-total','words-consulting'); updateFeeTable()" />
+                </div>
+                <div class="amount-words" id="words-consulting"></div>
+              </div>
+              <div class="field-group">
+                <label>GST Applicable</label>
+                <select id="fee-gst-consult" onchange="markFilled(this)">
+                  <option value="18">18%</option>
+                  <option value="0">Exempt</option>
+                  <option value="5">5%</option>
+                  <option value="12">12%</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>Upfront Amount on Sign-up <span class="req">*</span></label>
+                <div class="currency-input">
+                  <span class="symbol">₹</span>
+                  <input type="number" id="fee-upfront" value="150000" oninput="calcWords('fee-upfront','words-upfront')" />
+                </div>
+                <div class="amount-words" id="words-upfront"></div>
+              </div>
+              <div class="field-group">
+                <label>Balance Fee <span class="hint">(auto-calculated)</span></label>
+                <div class="currency-input">
+                  <span class="symbol">₹</span>
+                  <input type="number" id="fee-balance" value="50000" oninput="calcWords('fee-balance','words-balance')" />
+                </div>
+                <div class="amount-words" id="words-balance"></div>
+              </div>
+            </div>
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>Balance Payment Due (days after Kit submission)</label>
+                <input type="number" id="fee-balance-days" value="30" onchange="markFilled(this)" />
+              </div>
+              <div class="field-group">
+                <label>Max Revisions Included</label>
+                <input type="number" id="fee-revisions" value="3" onchange="markFilled(this)" />
+              </div>
+            </div>
+            <div class="form-row cols-1">
+              <div class="field-group">
+                <label>Additional Model Fee (per FICO / FOCO / FOFO / MF model)</label>
+                <div class="currency-input">
+                  <span class="symbol">₹</span>
+                  <input type="number" id="fee-additional-model" value="50000" oninput="calcWords('fee-additional-model','words-addl-model')" />
+                </div>
+                <div class="amount-words" id="words-addl-model"></div>
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="field-group">
+              <label>Franchise Models in Scope</label>
+              <div class="toggle-group" id="model-toggles">
+                <span class="toggle-chip selected" onclick="toggleChip(this)">FICO</span>
+                <span class="toggle-chip selected" onclick="toggleChip(this)">FOCO</span>
+                <span class="toggle-chip" onclick="toggleChip(this)">FOFO</span>
+                <span class="toggle-chip" onclick="toggleChip(this)">Master Franchise</span>
+                <span class="toggle-chip" onclick="toggleChip(this)">Distributor</span>
+                <span class="toggle-chip" onclick="toggleChip(this)">Channel Partner</span>
+                <span class="toggle-chip" onclick="toggleChip(this)">Network Affiliate</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Agreement Fee -->
+        <div class="form-card">
+          <div class="form-card-head">
+            <h3><span class="card-icon">📄</span> II. Agreement Drafting Fee</h3>
+          </div>
+          <div class="form-card-body">
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>Standard Draft Franchise Agreement Fee</label>
+                <div class="currency-input">
+                  <span class="symbol">₹</span>
+                  <input type="number" id="fee-agreement" value="25000" oninput="calcWords('fee-agreement','words-agreement')" />
+                </div>
+                <div class="amount-words" id="words-agreement"></div>
+              </div>
+              <div class="field-group">
+                <label>Per Additional Model Agreement Fee</label>
+                <div class="currency-input">
+                  <span class="symbol">₹</span>
+                  <input type="number" id="fee-addl-agreement" value="25000" oninput="calcWords('fee-addl-agreement','words-addl-agr')" />
+                </div>
+                <div class="amount-words" id="words-addl-agr"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Success Fee -->
+        <div class="form-card">
+          <div class="form-card-head">
+            <h3><span class="card-icon">🎯</span> III. Brokerage / Success Fee</h3>
+          </div>
+          <div class="form-card-body">
+            <div class="info-box">ℹ️ The success fee percentage and minimum amount are <strong>mutually agreed</strong> before the marketing phase. You can specify them here or leave as TBD to confirm by email.</div>
+            <div class="form-row cols-3">
+              <div class="field-group">
+                <label>Success Fee Type</label>
+                <select id="success-fee-type" onchange="toggleSuccessFee(this.value)">
+                  <option value="percent">Percentage of Franchise Fee</option>
+                  <option value="fixed">Fixed Amount per Franchise</option>
+                  <option value="both">Percentage + Minimum Amount</option>
+                  <option value="tbd">To Be Mutually Decided</option>
+                </select>
+              </div>
+              <div class="field-group" id="sf-percent-group">
+                <label>Success Fee %</label>
+                <div class="currency-input">
+                  <span class="symbol">%</span>
+                  <input type="number" id="fee-success-pct" value="15" min="0" max="100" step="0.5" onchange="markFilled(this)" />
+                </div>
+              </div>
+              <div class="field-group" id="sf-min-group">
+                <label>Minimum Success Fee (INR)</label>
+                <div class="currency-input">
+                  <span class="symbol">₹</span>
+                  <input type="number" id="fee-success-min" value="25000" oninput="calcWords('fee-success-min','words-success-min')" />
+                </div>
+                <div class="amount-words" id="words-success-min"></div>
+              </div>
+            </div>
+            <div class="form-row cols-1">
+              <div class="field-group">
+                <label>Success Fee Payment Due (working days from receipt)</label>
+                <input type="number" id="fee-success-days" value="1" onchange="markFilled(this)" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FSM Fee -->
+        <div class="form-card">
+          <div class="form-card-head">
+            <h3><span class="card-icon">📊</span> IV. Franchise Sales Manager Fee</h3>
+          </div>
+          <div class="form-card-body">
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>FSM Fee per Quarter (INR)</label>
+                <div class="currency-input">
+                  <span class="symbol">₹</span>
+                  <input type="number" id="fee-fsm" value="75000" oninput="calcWords('fee-fsm','words-fsm')" />
+                </div>
+                <div class="amount-words" id="words-fsm"></div>
+              </div>
+              <div class="field-group">
+                <label>Minimum Tenure (months)</label>
+                <input type="number" id="fee-fsm-tenure" value="3" onchange="markFilled(this)" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LoI Fee -->
+        <div class="form-card">
+          <div class="form-card-head">
+            <h3><span class="card-icon">📝</span> V. Application / LoI / MoU Fee</h3>
+          </div>
+          <div class="form-card-body">
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>Refund Window (days) if prospect rejected</label>
+                <input type="number" id="fee-refund-days" value="14" onchange="markFilled(this)" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Details -->
+        <div class="form-card">
+          <div class="form-card-head">
+            <h3><span class="card-icon">🏦</span> VI. Payment Details — Sparkleminds Bank</h3>
+          </div>
+          <div class="form-card-body">
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>Payable In Favor Of</label>
+                <input type="text" id="pay-favor" value="Sparkleminds" onchange="markFilled(this)" />
+              </div>
+              <div class="field-group">
+                <label>Payment Mode</label>
+                <select id="pay-mode" onchange="markFilled(this)">
+                  <option>NEFT / RTGS</option>
+                  <option>NEFT / RTGS / UPI</option>
+                  <option>Cheque / DD / NEFT / RTGS</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>Bank Name <span class="hint">(optional)</span></label>
+                <input type="text" id="pay-bank" placeholder="e.g. HDFC Bank" onchange="markFilled(this)" />
+              </div>
+              <div class="field-group">
+                <label>Account Number <span class="hint">(optional)</span></label>
+                <input type="text" id="pay-acc" placeholder="XXXXXXXXXXXX" onchange="markFilled(this)" />
+              </div>
+            </div>
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>IFSC Code <span class="hint">(optional)</span></label>
+                <input type="text" id="pay-ifsc" placeholder="e.g. HDFC0001234" onchange="markFilled(this)" />
+              </div>
+              <div class="field-group">
+                <label>Branch / City</label>
+                <input type="text" id="pay-branch" value="Bangalore" onchange="markFilled(this)" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fee Summary Table -->
+        <div class="form-card">
+          <div class="form-card-head">
+            <h3><span class="card-icon">🧮</span> Fee Summary</h3>
+          </div>
+          <div class="form-card-body">
+            <table class="fee-table" id="fee-summary-table">
+              <thead><tr><th>Service</th><th>Amount (INR)</th><th>GST</th><th>Total</th></tr></thead>
+              <tbody id="fee-summary-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+      <div class="step-footer">
+        <button class="btn btn-outline" onclick="goToPage('services')">← Back</button>
+        <button class="btn btn-gold" onclick="goToPage('clauses')">Next: Legal Clauses →</button>
+      </div>
+    </div>
+
+    <!-- ══════════ PAGE: CLAUSES ══════════ -->
+    <div class="section-page" id="page-clauses">
+      <div class="content-header">
+        <span class="step-badge">Sections 10–14</span>
+        <h2>Standard Legal Clauses</h2>
+        <p>All clauses are fully editable. Use the formatting toolbar or type directly. Click "Reset" to restore defaults.</p>
+      </div>
+      <div class="form-area" id="legal-clauses-container">
+        <!-- Built by JS -->
+      </div>
+      <div class="step-footer">
+        <button class="btn btn-outline" onclick="goToPage('payments')">← Back</button>
+        <button class="btn btn-gold" onclick="goToPage('validity')">Next: Validity →</button>
+      </div>
+    </div>
+
+    <!-- ══════════ PAGE: VALIDITY ══════════ -->
+    <div class="section-page" id="page-validity">
+      <div class="content-header">
+        <span class="step-badge">Section 15</span>
+        <h2>Validity, Termination &amp; Renewal</h2>
+        <p>Configure the term of this agreement and termination conditions.</p>
+      </div>
+      <div class="form-area">
+        <div class="form-card">
+          <div class="form-card-head"><h3><span class="card-icon">📅</span> Agreement Term</h3></div>
+          <div class="form-card-body">
+            <div class="form-row cols-3">
+              <div class="field-group">
+                <label>Initial Term (months) <span class="req">*</span></label>
+                <input type="number" id="val-term" value="6" onchange="markFilled(this); updateProgress()" />
+              </div>
+              <div class="field-group">
+                <label>Questionnaire Delivery (working days)</label>
+                <input type="number" id="val-qdel" value="2" onchange="markFilled(this)" />
+              </div>
+              <div class="field-group">
+                <label>Questionnaire Completion by Client (weeks)</label>
+                <input type="number" id="val-qcomp" value="2" onchange="markFilled(this)" />
+              </div>
+            </div>
+            <div class="form-row cols-3">
+              <div class="field-group">
+                <label>First Consulting Meeting (days after FDQ submission)</label>
+                <input type="number" id="val-meeting" value="7" onchange="markFilled(this)" />
+              </div>
+              <div class="field-group">
+                <label>Kit Delivery (weeks after first meeting)</label>
+                <input type="number" id="val-kit" value="3" onchange="markFilled(this)" />
+              </div>
+              <div class="field-group">
+                <label>Renewal Term (months)</label>
+                <input type="number" id="val-renewal" value="3" onchange="markFilled(this)" />
+              </div>
+            </div>
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>Termination Notice Period (days)</label>
+                <input type="number" id="val-notice" value="30" onchange="markFilled(this)" />
+              </div>
+              <div class="field-group">
+                <label>Non-Solicitation Period (years)</label>
+                <input type="number" id="val-nonsol" value="3" onchange="markFilled(this)" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step-footer">
+        <button class="btn btn-outline" onclick="goToPage('clauses')">← Back</button>
+        <button class="btn btn-gold" onclick="goToPage('dispute')">Next: Notice & Dispute →</button>
+      </div>
+    </div>
+
+    <!-- ══════════ PAGE: DISPUTE ══════════ -->
+    <div class="section-page" id="page-dispute">
+      <div class="content-header">
+        <span class="step-badge">Sections 16–17</span>
+        <h2>Notice &amp; Dispute Resolution</h2>
+      </div>
+      <div class="form-area">
+        <div class="form-card">
+          <div class="form-card-head"><h3><span class="card-icon">⚖️</span> Jurisdiction &amp; Dispute Resolution</h3></div>
+          <div class="form-card-body">
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>Governing Jurisdiction City</label>
+                <input type="text" id="disp-city" value="Bangalore, Karnataka" onchange="markFilled(this)" />
+              </div>
+              <div class="field-group">
+                <label>Dispute Resolution Method</label>
+                <select id="disp-method" onchange="markFilled(this)">
+                  <option>Exclusive Court Jurisdiction</option>
+                  <option>Arbitration (Indian Arbitration Act)</option>
+                  <option>Mediation then Arbitration</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row cols-1">
+              <div class="field-group">
+                <label>Additional Dispute Notes <span class="hint">(optional)</span></label>
+                <textarea id="disp-notes" rows="3" placeholder="Any specific dispute resolution provisions..."></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-card">
+          <div class="form-card-head"><h3><span class="card-icon">📬</span> Notice Details</h3></div>
+          <div class="form-card-body">
+            <div class="info-box">Notice contact details are pulled from the Consultant and Client sections above. Override below if different contacts apply for notices.</div>
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>SM Notice Attn To</label>
+                <input type="text" id="notice-sm-attn" placeholder="Leave blank to use SM Signatory" onchange="markFilled(this)" />
+              </div>
+              <div class="field-group">
+                <label>Client Notice Attn To</label>
+                <input type="text" id="notice-cl-attn" placeholder="Leave blank to use Client Signatory" onchange="markFilled(this)" />
+              </div>
+            </div>
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>Notice Methods Accepted</label>
+                <select id="notice-method" onchange="markFilled(this)">
+                  <option>Speed Post / Courier / Email</option>
+                  <option>Speed Post / Courier / Email / WhatsApp</option>
+                  <option>Any Written Communication</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step-footer">
+        <button class="btn btn-outline" onclick="goToPage('validity')">← Back</button>
+        <button class="btn btn-gold" onclick="goToPage('witnesses')">Next: Witnesses →</button>
+      </div>
+    </div>
+
+    <!-- ══════════ PAGE: WITNESSES ══════════ -->
+    <div class="section-page" id="page-witnesses">
+      <div class="content-header">
+        <span class="step-badge">Section 18</span>
+        <h2>Witness Details</h2>
+        <p>Enter witness details for the signature block. Both parties must have a witness.</p>
+      </div>
+      <div class="form-area">
+        <div class="form-card">
+          <div class="form-card-head"><h3><span class="card-icon">✍️</span> Witness I — on behalf of SM</h3></div>
+          <div class="form-card-body">
+            <div class="form-row cols-3">
+              <div class="field-group">
+                <label>Full Name</label>
+                <input type="text" id="wit1-name" placeholder="Witness full name" onchange="markFilled(this)" />
+              </div>
+              <div class="field-group">
+                <label>Address</label>
+                <input type="text" id="wit1-addr" placeholder="Address" onchange="markFilled(this)" />
+              </div>
+              <div class="field-group">
+                <label>Date of Signing</label>
+                <input type="date" id="wit1-date" onchange="markFilled(this)" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-card">
+          <div class="form-card-head"><h3><span class="card-icon">✍️</span> Witness II — on behalf of Client</h3></div>
+          <div class="form-card-body">
+            <div class="form-row cols-3">
+              <div class="field-group">
+                <label>Full Name</label>
+                <input type="text" id="wit2-name" placeholder="Witness full name" onchange="markFilled(this)" />
+              </div>
+              <div class="field-group">
+                <label>Address</label>
+                <input type="text" id="wit2-addr" placeholder="Address" onchange="markFilled(this)" />
+              </div>
+              <div class="field-group">
+                <label>Date of Signing</label>
+                <input type="date" id="wit2-date" onchange="markFilled(this)" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step-footer">
+        <button class="btn btn-outline" onclick="goToPage('dispute')">← Back</button>
+        <button class="btn btn-gold" onclick="goToPage('download')">→ Generate Agreement</button>
+      </div>
+    </div>
+
+    <!-- ══════════ PAGE: DOWNLOAD ══════════ -->
+    <div class="section-page" id="page-download">
+      <div class="content-header">
+        <span class="step-badge">Final Step</span>
+        <h2>Generate &amp; Download Agreement</h2>
+        <p>Review the live preview below and download the final agreement in your preferred format.</p>
+      </div>
+      <div class="form-area">
+
+        <div class="download-card">
+          <h3>Your Agreement is Ready</h3>
+          <p>Download as a Word document (.docx) to send for signatures, or copy the plain text version.</p>
+          <div class="download-actions">
+            <button class="btn btn-gold" onclick="generateDocx()" style="font-size:14px;padding:12px 28px;">
+              ⬇ Download .DOCX
+            </button>
+            <button class="btn btn-ghost" onclick="copyText()" style="font-size:14px;padding:12px 28px;">
+              📋 Copy Plain Text
+            </button>
+            <button class="btn btn-ghost" onclick="printAgreement()" style="font-size:14px;padding:12px 28px;">
+              🖨 Print / Save PDF
+            </button>
+          </div>
+        </div>
+
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="switchTab('preview', this)">📄 Live Preview</button>
+          <button class="tab-btn" onclick="switchTab('plaintext', this)">🔤 Plain Text</button>
+          <button class="tab-btn" onclick="switchTab('checklist', this)">✅ Completion Checklist</button>
+        </div>
+
+        <div class="tab-content active" id="tab-preview">
+          <div class="preview-panel">
+            <div class="preview-header">
+              <h3>Document Preview</h3>
+              <span style="font-size:11px;opacity:0.6;">Red text = missing / unfilled fields</span>
+            </div>
+            <div id="doc-preview"></div>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab-plaintext">
+          <div class="form-card">
+            <div class="form-card-body">
+              <textarea id="plain-text-area" style="font-family:monospace;font-size:12px;line-height:1.7;min-height:500px;background:#1a1510;color:#e8dcc8;border-color:#3d3428;" readonly></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab-checklist">
+          <div class="form-card">
+            <div class="form-card-body">
+              <div id="checklist-content"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <!-- end pages -->
+
+  </main>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// CLAUSES DEFINITIONS
+// ═══════════════════════════════════════════════════
+
+const SERVICE_CLAUSES = [
+  {
+    id: 'clause-representation',
+    title: '§3 — Representation',
+    icon: '🤝',
+    default: `The Consultant will represent the Client to all intents and purposes in connection with the above said services and all affairs ancillary and incidental to the same.`
+  },
+  {
+    id: 'clause-meetings',
+    title: '§4 — E-Meetings with Key Personnel & Point of Contact',
+    icon: '💻',
+    default: `The first e-meeting will happen with the Client's key personnel of the company, who have been approved by SM to discuss and understand in depth the Client's franchise objectives and its franchise readiness. Also, the Client shall designate one point of contact with whom SM shall interact for all its requirements from the Client. The first consulting e-meeting will happen via Teams / Google Meet. In certain specific cases, there could be a personal meeting which could be mutually agreed upon. Most meetings otherwise will be via Video Conferencing. No external consultants / advisors / any other third parties will be allowed to participate in the consulting meetings. Only the Founders / Partners / Managing Directors / senior personnel employed directly by the Client will be permitted to be a part of the meeting who have been pre-approved by SM. In case the Client insists for a personal meeting after the initial virtual video meeting, there would be additional visit fee in addition to the air travel, boarding, lodging and food costs that the franchisor would have to bear for two consultants who would travel to the franchisor location.`
+  },
+  {
+    id: 'clause-documentation',
+    title: '§5 — Documentation and Legal Agreement',
+    icon: '📁',
+    default: `SM will ask the Client to supply the answers to its detailed Questionnaire/s and return these to SM together with any additional written materials that describe the Client's services and/or products. SM will also ask the Client the basic agreements, Financials, ROI's, Estimated Business Projections, and Company History etc. that the Client has for review and integration with the franchise marketing strategy that would be developed. SM could also recommend research, audit, design companies for any other specialized services which the Client may seek.`
+  },
+  {
+    id: 'clause-brochure',
+    title: '§6 — Franchise Marketing Brochure',
+    icon: '📰',
+    default: `SM shall consult with the Client, instruct and assist Client in the development of the layout and wording of a franchise-marketing brochure for use by Client as a marketing tool in the offering of its franchise opportunity ("Brochure"). Based upon the prior documents and the discussions and strategic inputs finalized between the parties hereto SM shall provide Client with the suggested wording and layout for the Brochure.`
+  },
+  {
+    id: 'clause-systems',
+    title: '§7 — Systems and Forms',
+    icon: '⚙️',
+    default: `SM shall discuss with Client the various systems, forms and reporting procedures that are available and will recommend changes in certain systems and forms to Client, if needed.`
+  },
+  {
+    id: 'clause-support',
+    title: '§8 — Support Programs',
+    icon: '🛠️',
+    default: `SM shall, during the term of this agreement provide, additional franchise recruitment support programs. These services shall include advice on programs and systems to provide an ongoing link between Client and its franchisees, including processing all the queries they get for their franchisees from all the sources.`
+  },
+  {
+    id: 'clause-marketing-services',
+    title: '§9 — Franchise Marketing and Franchise Manager Services',
+    icon: '📣',
+    default: `Upon approval of the franchise marketing kit and the preparation of the franchise agreement, if the Client wishes to use the services of SM for recruitment of franchises, then SM shall commence the franchise marketing phase and provide Franchise Marketing and Sales consulting services to Client concerning the various methods of franchise marketing and the mechanics of conducting and completing the franchise sale thereby interacting and attempting to conclude franchise sales for the Client.\n\nSM shall also provide a Franchise Manager who will process all leads generated by the Client and manage the entire franchise conversions for the company during the tenure of the agreement through its account manager service. SM shall take a success fee for every franchise conversion it enables as mentioned in the Payments section.\n\nThe Client could choose this part of the activity and hire the services of SM for recruitment of franchises or exempt themselves completely from this part and recruit their franchises on their own after the preparation of the franchise agreement.`
+  },
+  {
+    id: 'clause-advertising',
+    title: '§10 — Marketing, Advertising, Exhibition & Lead Management',
+    icon: '📢',
+    default: `Once the Client approves the Franchise Marketing, SM shall:\n\n(I) Supply Client with samples of suggested advertising materials designed to attract prospects and leads for the sale of franchises. SM will also advise the Client on the various methods of lead generations and activities like conducting discovery day programs, trade magazines and other effective media.\n\n(II) Prospective franchisees seeking the opportunity will be given a unique customer identification number for easier processing of the queries. If the company signs any agreement with that customer or his first/blood relatives, it shall process the enquiry under the same number.\n\n(III) Upon introduction or enquiry of any prospective franchisee introduced by SM, the Client shall route all its communication through SM only and all meetings thereafter shall happen only when there is a SM representative present.`
+  }
+];
+
+const LEGAL_CLAUSES = [
+  {
+    id: 'clause-expenses',
+    title: '§11 — Expenses',
+    icon: '💰',
+    default: `The following expenses (only if applicable) are excluded in the above proposal: (a) Transportation, food, mileage and lodging; (b) Designing, Printing, Photography and Stock Photography Fees; (c) Courier Delivery; (d) Outside Professional services fees, legal, research, accounting and audit; (e) International Telephone and Bank Charges.\n\nClient shall pay all expenses of Courier, CD, Word processing, typing, photocopying of materials prepared and done for Clients. Client shall reimburse in advance, on an as-billed/estimate basis, for any travel, room and board expense incurred by SM on behalf of Client. Client agrees to pay for all printing costs of brochures, advertisements and for all photography and camera-ready artwork. All other additional professional charges to design agencies, legal firms, and research agencies would be extra and pre-approved if Client needs any such services.\n\nAll expenses mentioned above or done on behalf of the Client, has to be done only after prior approvals from the client. No expenses will be incurred by Sparkleminds without the Client's prior written / telephonic / E-mail / WhatsApp approval.`
+  },
+  {
+    id: 'clause-cooperation',
+    title: '§12 — Cooperation',
+    icon: '🤝',
+    default: `Client acknowledges that its cooperation is essential to the timely completion of the services to be performed by SM pursuant to this agreement. Therefore, Client agrees to make its staff and facilities available to SM upon reasonable request and to promptly provide SM with all materials so requested and to timely respond to inquiries of SM.`
+  },
+  {
+    id: 'clause-confidentiality',
+    title: '§13 — Confidentiality',
+    icon: '🔒',
+    default: `SM hereby covenants and agrees that any and all information received from Client shall be treated as absolutely confidential and shall not be divulged to any person or entity for any purpose whatsoever other than the purpose of offering the franchise to any prospective franchise buyer or any other franchise interest of the Client. In a similar fashion the Client would not share any templates, documents, proposals, agreements, information gathered through SM with anybody ensuring complete confidentiality of all work that is done with the Client.`
+  },
+  {
+    id: 'clause-nonsolicitation',
+    title: '§14 — Non-Solicitation',
+    icon: '🚫',
+    default: `The Client shall not employ any SM employee or take any services beyond the scope of services mentioned in this agreement, for a period of [NON_SOL_YEARS] years from the expiry of this contract. This also includes SM employees who are not directly involved in the project of the Client. The same clause will apply vice versa for SM who shall not hire any employee of the Client.`
+  },
+  {
+    id: 'clause-taxes',
+    title: '§15 — Taxes, Levies, Duties and Other Charges',
+    icon: '🧾',
+    default: `All Taxes and statutory levies are extra as applicable. All payments made to SM are completely non-refundable or non-adjustable against heads/services/phases other than the heads/services/phases invoiced to the Client by SM.`
+  },
+  {
+    id: 'clause-disclaimer',
+    title: '§16 — Disclaimer',
+    icon: '⚠️',
+    default: `(I) The Client hereby confirms that all such acts lawfully performed by SM in the interests of the Client will be valid and binding on the Client. SM, its Founders, Partners, Managing Directors, Officers, employees, or agents will in no manner be liable to the Client for any incidental, indirect, special or consequential damages occurring out of this agreement. Furthermore, SM's total liability to the Client for all damages, losses, and causes of action shall not exceed the amount of fee paid by the Client for a particular assignment.\n\n(II) All work covered under this agreement will be completed within the timelines mentioned. Work not completed by the said timelines, due to the Client-caused delays, will be completed by SM at Client's expense. The Client understands and confirms that the success of a franchise program depends upon a variety of factors outside of SM's control. SM cannot and does not warrant the success of any such program.\n\n(III) The Client also agrees that SM will have nothing to do with the profits and losses occurred with any franchisee or third party that is introduced / signed.`
+  },
+  {
+    id: 'clause-general',
+    title: '§18 — General Clauses',
+    icon: '📌',
+    default: `(a) Corporate Authorization — Both Parties agree and confirm that the respective representative have the requisite authorizations to enter into this Agreement on their behalf.\n\n(b) Severability — If any term and/or provision of this Agreement is struck down or is unenforceable, the remainder of this Agreement shall not be affected thereby.\n\n(c) Stamp Duty and Legal Cost — Both Parties agree to individually bear their own legal and financial expenses with respect to this transaction.\n\n(d) Entire Agreement — This Agreement represents the entire agreement between the Parties in relation to the terms of the matters contained herein and shall supersede any previous drafts, agreements, term sheets, or understandings.\n\n(e) Force Majeure — No Party shall be liable to the other if performance is prevented, restricted, delayed or interfered with due to circumstances beyond its reasonable control, including Government legislations, fires, floods, explosions, epidemics, accidents, acts of God, wars, riots, strikes, lockouts, or other concerted acts of workmen.\n\n(f) Counterparts — This Agreement may be sealed with rubber stamp, signed in counterparts and may be sent via WhatsApp, email or original copy through courier service. Any such signature sent through email or WhatsApp shall be deemed to be in the original for all purposes.\n\n(g) Amendments — No amendment or variation of this Agreement shall be effective unless in writing and signed by a duly authorized representative of each of the Parties.`
+  }
+];
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+
+window.onload = function() {
+  buildServiceClauses();
+  buildLegalClauses();
+  updateAllAmountWords();
+  updateFeeTable();
+  updateProgress();
+  updatePreview();
+  setInterval(updatePreview, 2000);
+};
+
+function buildServiceClauses() {
+  const container = document.getElementById('service-clauses-container');
+  SERVICE_CLAUSES.forEach(clause => {
+    container.innerHTML += buildClauseEditor(clause);
+  });
+}
+
+function buildLegalClauses() {
+  const container = document.getElementById('legal-clauses-container');
+  LEGAL_CLAUSES.forEach(clause => {
+    container.innerHTML += buildClauseEditor(clause);
+  });
+}
+
+function buildClauseEditor(clause) {
+  return `
+  <div class="form-card" style="margin-bottom:20px;">
+    <div class="form-card-head">
+      <h3><span class="card-icon">${clause.icon}</span> ${clause.title}</h3>
+      <button class="clause-reset-btn" onclick="resetClause('${clause.id}')">↺ Reset to default</button>
+    </div>
+    <div class="form-card-body" style="padding:0;">
+      <div class="clause-editor">
+        <div class="clause-toolbar">
+          <div class="clause-toolbar-left">
+            <button class="clause-tool-btn" title="Bold" onclick="formatText('bold')"><b>B</b></button>
+            <button class="clause-tool-btn" title="Italic" onclick="formatText('italic')"><i>I</i></button>
+            <button class="clause-tool-btn" title="Underline" onclick="formatText('underline')"><u>U</u></button>
+          </div>
+          <span style="font-size:10px;color:var(--ink-3)">Click text to edit</span>
+        </div>
+        <div class="clause-content" id="${clause.id}" contenteditable="true">${clause.default.replace(/\n/g,'<br>')}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function resetClause(id) {
+  const all = [...SERVICE_CLAUSES, ...LEGAL_CLAUSES];
+  const clause = all.find(c => c.id === id);
+  if (clause) {
+    document.getElementById(id).innerHTML = clause.default.replace(/\n/g,'<br>');
+    showToast('Clause reset to default.', 'info');
+  }
+}
+
+function formatText(cmd) {
+  document.execCommand(cmd, false, null);
+}
+
+// ═══════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════
+
+function goToPage(name) {
+  document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  const nav = document.getElementById('nav-' + name);
+  if (nav) nav.classList.add('active');
+  if (name === 'download') { updatePreview(); updatePlainText(); updateChecklist(); }
+  window.scrollTo(0, 0);
+}
+
+function switchTab(tabName, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tabName).classList.add('active');
+  btn.classList.add('active');
+  if (tabName === 'plaintext') updatePlainText();
+  if (tabName === 'checklist') updateChecklist();
+}
+
+// ═══════════════════════════════════════════════════
+// FIELD HELPERS
+// ═══════════════════════════════════════════════════
+
+function markFilled(el) {
+  if (el.value && el.value.trim()) el.classList.add('filled');
+  else el.classList.remove('filled');
+  updateProgress();
+}
+
+function v(id) {
+  const el = document.getElementById(id);
+  if (!el) return '';
+  return (el.value || '').trim();
+}
+
+function vn(id) {
+  return parseFloat(v(id)) || 0;
+}
+
+function toggleChip(el) {
+  el.classList.toggle('selected');
+}
+
+function toggleSuccessFee(val) {
+  const pg = document.getElementById('sf-percent-group');
+  const mg = document.getElementById('sf-min-group');
+  pg.style.display = (val === 'fixed' || val === 'tbd') ? 'none' : 'flex';
+  mg.style.display = (val === 'percent' || val === 'tbd') ? 'none' : 'flex';
+}
+
+function getSelectedModels() {
+  const chips = document.querySelectorAll('#model-toggles .toggle-chip.selected');
+  return Array.from(chips).map(c => c.textContent.trim());
+}
+
+// ═══════════════════════════════════════════════════
+// NUMBER TO WORDS (Indian system)
+// ═══════════════════════════════════════════════════
+
+function numToWords(n) {
+  if (!n || isNaN(n)) return '';
+  n = Math.abs(Math.round(n));
+  if (n === 0) return 'Zero';
+
+  const ones = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine',
+    'Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+  const tens = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+
+  function convert(num) {
+    if (num < 20) return ones[num];
+    if (num < 100) return tens[Math.floor(num/10)] + (num%10 ? ' '+ones[num%10] : '');
+    if (num < 1000) return ones[Math.floor(num/100)] + ' Hundred' + (num%100 ? ' '+convert(num%100) : '');
+    return '';
+  }
+
+  let result = '';
+  const cr = Math.floor(n / 10000000);
+  const lk = Math.floor((n % 10000000) / 100000);
+  const th = Math.floor((n % 100000) / 1000);
+  const rest = n % 1000;
+
+  if (cr) result += convert(cr) + ' Crore ';
+  if (lk) result += convert(lk) + ' Lakh ';
+  if (th) result += convert(th) + ' Thousand ';
+  if (rest) result += convert(rest);
+
+  return result.trim();
+}
+
+function calcWords(inputId, outputId) {
+  const val = parseFloat(document.getElementById(inputId).value) || 0;
+  const el = document.getElementById(outputId);
+  if (el) el.textContent = val ? 'Rs. ' + numToWords(val) + ' Only' : '';
+  markFilled(document.getElementById(inputId));
+  updateProgress();
+}
+
+function updateAllAmountWords() {
+  const pairs = [
+    ['fee-consulting-total','words-consulting'],
+    ['fee-upfront','words-upfront'],
+    ['fee-balance','words-balance'],
+    ['fee-additional-model','words-addl-model'],
+    ['fee-agreement','words-agreement'],
+    ['fee-addl-agreement','words-addl-agr'],
+    ['fee-success-min','words-success-min'],
+    ['fee-fsm','words-fsm'],
+  ];
+  pairs.forEach(([a,b]) => calcWords(a,b));
+}
+
+// ═══════════════════════════════════════════════════
+// FEE TABLE
+// ═══════════════════════════════════════════════════
+
+function updateFeeTable() {
+  const gst = vn('fee-gst-consult') / 100;
+  const consulting = vn('fee-consulting-total');
+  const agreement = vn('fee-agreement');
+  const fsm = vn('fee-fsm');
+
+  const rows = [
+    ['Consulting Fee (Franchise Marketing Kit)', consulting, gst, consulting * (1 + gst)],
+    ['Agreement Drafting Fee', agreement, gst, agreement * (1 + gst)],
+    ['Franchise Sales Manager Fee (per quarter)', fsm, gst, fsm * (1 + gst)],
+  ];
+
+  const total = rows.reduce((s,r) => s + r[3], 0);
+  const body = document.getElementById('fee-summary-body');
+  if (!body) return;
+
+  body.innerHTML = rows.map(r => `
+    <tr>
+      <td>${r[0]}</td>
+      <td>₹${r[1].toLocaleString('en-IN')}</td>
+      <td>${(r[2]*100).toFixed(0)}%</td>
+      <td>₹${r[3].toLocaleString('en-IN')}</td>
+    </tr>
+  `).join('') + `
+    <tr class="total-row">
+      <td>TOTAL (Phase I + Agreement + First Quarter FSM)</td>
+      <td colspan="2"></td>
+      <td>₹${total.toLocaleString('en-IN')}</td>
+    </tr>`;
+}
+
+// ═══════════════════════════════════════════════════
+// PROGRESS
+// ═══════════════════════════════════════════════════
+
+const REQUIRED_FIELDS = [
+  'agr-date','cl-name','cl-address','cl-signatory','cl-designation','cl-email',
+  'sm-name','sm-address','sm-signatory',
+  'fee-consulting-total','fee-upfront',
+  'val-term'
+];
+
+function updateProgress() {
+  let filled = 0;
+  REQUIRED_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.value && el.value.trim()) filled++;
+  });
+  const pct = Math.round((filled / REQUIRED_FIELDS.length) * 100);
+  const bar = document.getElementById('progress-bar');
+  const lbl = document.getElementById('progress-label');
+  if (bar) bar.style.width = pct + '%';
+  if (lbl) lbl.textContent = pct + '% complete';
+
+  // Mark nav items
+  const navMap = {
+    'nav-basics': ['agr-date'],
+    'nav-client': ['cl-name','cl-signatory','cl-email'],
+    'nav-consultant': ['sm-name','sm-signatory'],
+    'nav-payments': ['fee-consulting-total'],
+    'nav-validity': ['val-term'],
+  };
+  Object.entries(navMap).forEach(([navId, fields]) => {
+    const nav = document.getElementById(navId);
+    if (!nav) return;
+    const done = fields.every(f => { const el = document.getElementById(f); return el && el.value && el.value.trim(); });
+    if (done) nav.classList.add('filled');
+    else nav.classList.remove('filled');
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// AGREEMENT TEXT BUILDER
+// ═══════════════════════════════════════════════════
+
+function ph(val, label) {
+  if (!val || !val.trim()) return `<span class="placeholder">[${label}]</span>`;
+  return val;
+}
+
+function phPlain(val, label) {
+  if (!val || !val.trim()) return `[${label}]`;
+  return val;
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  const day = d.getDate();
+  const suffix = ['th','st','nd','rd'][((day%100-11)%10 < 3) ? 0 : [1,2,3][day%10-1] || 0] || 'th';
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return `${day}${suffix} day of ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function getClauseText(id) {
+  const el = document.getElementById(id);
+  if (!el) return '';
+  return el.innerText || el.textContent || '';
+}
+
+function buildAgreementData() {
+  const d = {
+    date: v('agr-date'),
+    ref: v('agr-ref'),
+    title: v('agr-title') || 'FRANCHISE DEVELOPMENT AGREEMENT',
+
+    smName: v('sm-name'),
+    smAddress: v('sm-address'),
+    smSignatory: v('sm-signatory'),
+    smDesignation: v('sm-designation'),
+    smCity: v('sm-city'),
+    smEmail: v('sm-email'),
+    smAlias: v('sm-alias') || 'Consultant/SM',
+
+    clName: v('cl-name'),
+    clCin: v('cl-cin'),
+    clAddress: v('cl-address'),
+    clSignatory: v('cl-signatory'),
+    clDesignation: v('cl-designation'),
+    clCity: v('cl-city'),
+    clEmail: v('cl-email'),
+    clPhone: v('cl-phone'),
+    clAlias: v('cl-alias') || 'Company/Client',
+
+    feeTotal: vn('fee-consulting-total'),
+    feeUpfront: vn('fee-upfront'),
+    feeBalance: vn('fee-balance'),
+    feeBalanceDays: v('fee-balance-days') || '30',
+    feeRevisions: v('fee-revisions') || '3',
+    feeAddlModel: vn('fee-additional-model'),
+    feeAgreement: vn('fee-agreement'),
+    feeAddlAgreement: vn('fee-addl-agreement'),
+    feeSuccessType: v('success-fee-type'),
+    feeSuccessPct: v('fee-success-pct'),
+    feeSuccessMin: vn('fee-success-min'),
+    feeSuccessDays: v('fee-success-days') || '1',
+    feeFsm: vn('fee-fsm'),
+    feeFsmTenure: v('fee-fsm-tenure') || '3',
+    feeRefundDays: v('fee-refund-days') || '14',
+    payFavor: v('pay-favor') || 'Sparkleminds',
+    payMode: v('pay-mode') || 'NEFT / RTGS',
+    payBranch: v('pay-branch') || 'Bangalore',
+    payBank: v('pay-bank'),
+    payAcc: v('pay-acc'),
+    payIfsc: v('pay-ifsc'),
+
+    valTerm: v('val-term') || '6',
+    valQdel: v('val-qdel') || '2',
+    valQcomp: v('val-qcomp') || '2',
+    valMeeting: v('val-meeting') || '7',
+    valKit: v('val-kit') || '3',
+    valRenewal: v('val-renewal') || '3',
+    valNotice: v('val-notice') || '30',
+    valNonsol: v('val-nonsol') || '3',
+
+    dispCity: v('disp-city') || 'Bangalore, Karnataka',
+    dispMethod: v('disp-method'),
+    noticeMethod: v('notice-method') || 'Speed Post / Courier / Email',
+
+    wit1Name: v('wit1-name'),
+    wit1Addr: v('wit1-addr'),
+    wit2Name: v('wit2-name'),
+    wit2Addr: v('wit2-addr'),
+
+    models: getSelectedModels(),
+
+    // Clauses
+    svcRepresentation: getClauseText('clause-representation'),
+    svcMeetings: getClauseText('clause-meetings'),
+    svcDocumentation: getClauseText('clause-documentation'),
+    svcBrochure: getClauseText('clause-brochure'),
+    svcSystems: getClauseText('clause-systems'),
+    svcSupport: getClauseText('clause-support'),
+    svcMarketing: getClauseText('clause-marketing-services'),
+    svcAdvertising: getClauseText('clause-advertising'),
+    legalExpenses: getClauseText('clause-expenses'),
+    legalCooperation: getClauseText('clause-cooperation'),
+    legalConfidentiality: getClauseText('clause-confidentiality'),
+    legalNonsolicitation: getClauseText('clause-nonsolicitation').replace('[NON_SOL_YEARS]', v('val-nonsol') || '3'),
+    legalTaxes: getClauseText('clause-taxes'),
+    legalDisclaimer: getClauseText('clause-disclaimer'),
+    legalGeneral: getClauseText('clause-general'),
+  };
+  return d;
+}
+
+function buildSuccessFeeText(d, plain) {
+  const P = plain ? phPlain : ph;
+  if (!d.feeSuccessType || d.feeSuccessType === 'tbd') {
+    return 'The applicable success fee percentage and the fixed minimum amount shall be mutually agreed between the Parties prior to the commencement of the franchise marketing phase and shall be confirmed in writing through email acceptance by both Parties.';
+  }
+  if (d.feeSuccessType === 'percent') {
+    return `The success fee shall be ${P(d.feeSuccessPct,'SUCCESS_PCT')}% of the Franchise Fee and/or Non-Refundable Fee charged by the Client, payable within ${d.feeSuccessDays} working day(s) of receipt.`;
+  }
+  if (d.feeSuccessType === 'fixed') {
+    return `The success fee shall be Rs. ${d.feeSuccessMin.toLocaleString('en-IN')}/- (${numToWords(d.feeSuccessMin)} Only) per franchise conversion, payable within ${d.feeSuccessDays} working day(s).`;
+  }
+  return `The success fee shall be ${P(d.feeSuccessPct,'SUCCESS_PCT')}% of the Franchise Fee, subject to a minimum of Rs. ${d.feeSuccessMin.toLocaleString('en-IN')}/- (${numToWords(d.feeSuccessMin)} Only) per conversion, payable within ${d.feeSuccessDays} working day(s).`;
+}
+
+// ═══════════════════════════════════════════════════
+// PREVIEW (HTML)
+// ═══════════════════════════════════════════════════
+
+function updatePreview() {
+  const preview = document.getElementById('doc-preview');
+  if (!preview) return;
+  const d = buildAgreementData();
+  const P = (val, label) => ph(val, label);
+  const fmt = formatDate(d.date);
+
+  preview.innerHTML = `
+    <div class="doc-title">${d.title}</div>
+
+    <p>This Agreement is made and executed on this <strong>${fmt ? fmt : '<span class="placeholder">[DATE]</span>'}</strong></p>
+
+    <h3>BETWEEN:</h3>
+    <div class="doc-section">
+      <p><strong>${P(d.smName,'SM_NAME')},</strong> having its office at ${P(d.smAddress,'SM_ADDRESS')} (hereinafter called <strong>'${d.smAlias}'</strong>) through its Authorized Signatory, Mr. ${P(d.smSignatory,'SM_SIGNATORY')} – ${P(d.smDesignation,'SM_DESIGNATION')}, ${P(d.smCity,'SM_CITY')}, which expression shall, unless it be repugnant to the context or meaning thereof, be deemed to mean and include its successors in interest, legal representatives, heirs, administrators, assigns etc. of the one part.</p>
+      <p><strong>AND</strong></p>
+      <p><strong>${P(d.clName,'CLIENT_NAME')},</strong>${d.clCin ? ' CIN '+d.clCin+' and' : ''} having its registered office at ${P(d.clAddress,'CLIENT_ADDRESS')} (hereinafter called as <strong>"${d.clAlias}"</strong>) through its Authorized Signatory, ${P(d.clSignatory,'CLIENT_SIGNATORY')}, ${P(d.clDesignation,'CLIENT_DESIGNATION')}, which expression shall, unless it is repugnant to the context or meaning thereof, be deemed to mean and include its successors in interest, legal representatives, heirs, administrators, assigns, etc. of the other part.</p>
+    </div>
+
+    <p><strong>WHEREAS</strong> the Client wants to expand its business and structure its franchise strategy and recruitment of franchisees across India and in this regard wants to engage the services of an Expert Company who can assist the Client in finalizing the franchise strategy and thereafter recruiting franchisees on a regional, national and/or international basis.</p>
+    <p><strong>WHEREAS</strong> SM is having extensive knowledge and infrastructure and ready to provide information and services in the process of executing the franchise expansion for the Client in a phased manner.</p>
+    <p>Now it is hereby agreed by and between the Parties hereto as follows:</p>
+
+    <h3>1. Representation</h3>
+    <div class="doc-section"><p>${d.svcRepresentation}</p></div>
+
+    <h3>2. E-Meetings with Key Personnel & Point of Contact</h3>
+    <div class="doc-section"><p>${d.svcMeetings.replace(/\n/g,'<br>')}</p></div>
+
+    <h3>3. Documentation and Legal Agreement</h3>
+    <div class="doc-section"><p>${d.svcDocumentation.replace(/\n/g,'<br>')}</p></div>
+
+    <h3>4. Franchise Marketing Brochure</h3>
+    <div class="doc-section"><p>${d.svcBrochure.replace(/\n/g,'<br>')}</p></div>
+
+    <h3>5. Systems and Forms</h3>
+    <div class="doc-section"><p>${d.svcSystems}</p></div>
+
+    <h3>6. Support Programs</h3>
+    <div class="doc-section"><p>${d.svcSupport}</p></div>
+
+    <h3>7. Franchise Marketing and Franchise Manager Services</h3>
+    <div class="doc-section"><p>${d.svcMarketing.replace(/\n/g,'<br>')}</p></div>
+
+    <h3>8. Marketing, Advertising, Exhibition & Lead Management</h3>
+    <div class="doc-section"><p>${d.svcAdvertising.replace(/\n/g,'<br>')}</p></div>
+
+    <h3>9. Payments</h3>
+    <div class="doc-section">
+      <p><strong>I. Consulting Fee</strong></p>
+      <p>Client shall pay SM a consulting fee of Rs. ${d.feeTotal.toLocaleString('en-IN')}/- (${numToWords(d.feeTotal)} Only) + GST for creation of a franchise marketing kit${d.models.length ? ', covering the following models: ' + d.models.join(', ') : ''}.</p>
+      <p>(a) Upon sign up of this Agreement the Client shall pay a fee of Rs. ${d.feeUpfront.toLocaleString('en-IN')}/- (${numToWords(d.feeUpfront)} Only) + GST.</p>
+      <p>(b) The Balance Fee of Rs. ${d.feeBalance.toLocaleString('en-IN')}/- (${numToWords(d.feeBalance)} Only) + GST will be paid within ${d.feeBalanceDays} (${numToWords(parseInt(d.feeBalanceDays))}) days of submission of the Kit subject to a maximum of ${d.feeRevisions} [${numToWords(parseInt(d.feeRevisions))}] revisions.</p>
+      <p>(d) Rs. ${d.feeAddlModel.toLocaleString('en-IN')}/- (${numToWords(d.feeAddlModel)} Only) will be charged per additional FICO / FOCO / FOFO / Master Franchise model.</p>
+
+      <p><strong>II. Agreement Fee</strong></p>
+      <p>(a) SM would charge Rs. ${d.feeAgreement.toLocaleString('en-IN')}/- (${numToWords(d.feeAgreement)} Only) + GST for assistance in creation of one standard draft franchise agreement.</p>
+      <p>(b) For every additional agreement draft for any additional Model, Rs. ${d.feeAddlAgreement.toLocaleString('en-IN')}/- (${numToWords(d.feeAddlAgreement)} Only) would be charged per additional model.</p>
+
+      <p><strong>III. Brokerage / Success Fee</strong></p>
+      <p>${buildSuccessFeeText(d, false)}</p>
+
+      <p><strong>IV. Franchise Sales Manager Fee</strong></p>
+      <p>One Franchise Sales Manager Fee of Rs. ${d.feeFsm.toLocaleString('en-IN')}/- (${numToWords(d.feeFsm)} Only) + GST will be charged per quarter (every three months) after the approval of the franchise marketing kit. This includes marketing on FranchiseBazar.com and its social media platforms.</p>
+
+      <p><strong>V. Application / LoI / MoU Fee</strong></p>
+      <p>The Client will pay SM all the fees it collects vide its LOI/MOU/Application Form for processing the franchisee's applications. If the prospect is rejected and the amount is refunded within ${d.feeRefundDays} [${numToWords(parseInt(d.feeRefundDays))}] days, then the Client need not pay the same to SM.</p>
+
+      <p><strong>VI. Payments in Favor Of:</strong></p>
+      <p>The Client shall make all payments to SM in favor of '${d.payFavor}' by ${d.payMode} payable at ${d.payBranch}.${d.payBank ? ' Bank: '+d.payBank+'.':''} ${d.payAcc ? ' Account: '+d.payAcc+'.':''} ${d.payIfsc ? ' IFSC: '+d.payIfsc+'.':''} All payments are completely non-refundable and non-adjustable.</p>
+    </div>
+
+    <h3>10. Expenses</h3>
+    <div class="doc-section"><p>${d.legalExpenses.replace(/\n/g,'<br>')}</p></div>
+
+    <h3>11. Cooperation</h3>
+    <div class="doc-section"><p>${d.legalCooperation}</p></div>
+
+    <h3>12. Confidentiality</h3>
+    <div class="doc-section"><p>${d.legalConfidentiality}</p></div>
+
+    <h3>13. Non-Solicitation</h3>
+    <div class="doc-section"><p>${d.legalNonsolicitation.replace('[NON_SOL_YEARS]', d.valNonsol)}</p></div>
+
+    <h3>14. Taxes, Levies, Duties and Other Charges</h3>
+    <div class="doc-section"><p>${d.legalTaxes}</p></div>
+
+    <h3>15. Disclaimer</h3>
+    <div class="doc-section"><p>${d.legalDisclaimer.replace(/\n/g,'<br>')}</p></div>
+
+    <h3>16. Validity, Termination & Renewal</h3>
+    <div class="doc-section">
+      <p>(I) This agreement is valid for a period of ${d.valTerm} [${numToWords(parseInt(d.valTerm))}] Months from the date of this agreement. The Client will receive the Standard SM franchise questionnaire within ${d.valQdel} working days of sign up. The questionnaire could be completed within a max period of ${d.valQcomp} weeks. The consultant will submit the first draft of the franchise marketing kit within ${d.valKit} weeks of the first consulting meeting.</p>
+      <p>(II) Once the Client approves the marketing phase then all franchisees appointed by the Client within that period shall be deemed as appointed by SM.</p>
+      <p>(IV) The agreement would be renewed for a further period of ${d.valRenewal} [${numToWords(parseInt(d.valRenewal))}] Months once the client makes the payment for the franchise marketing services.</p>
+      <p>(V) Both parties are free to terminate the agreement by giving each other a written notice of termination effective ${d.valNotice} days from the said notice, after all payments have been cleared.</p>
+    </div>
+
+    <h3>17. Notice</h3>
+    <div class="doc-section">
+      <table>
+        <tr>
+          <td><strong>IF TO ${P(d.smName,'SM_NAME')}:</strong><br/>Kind Attention: ${P(d.smSignatory,'SM_SIGNATORY')}<br/>${P(d.smAddress,'SM_ADDRESS')}<br/>E-mail: ${P(d.smEmail,'SM_EMAIL')}</td>
+          <td><strong>IF TO ${P(d.clName,'CLIENT_NAME')}:</strong><br/>Kind Attention: ${P(d.clSignatory,'CLIENT_SIGNATORY')}<br/>${P(d.clAddress,'CLIENT_ADDRESS')}<br/>E-mail: ${P(d.clEmail,'CLIENT_EMAIL')}</td>
+        </tr>
+      </table>
+    </div>
+
+    <h3>18. Dispute Resolution</h3>
+    <div class="doc-section"><p>The Parties to this Agreement agree and confirm that appropriate Court(s) at ${d.dispCity} alone shall have the exclusive jurisdiction to entertain any dispute, controversy or claim arising out of or relating to this Agreement.</p></div>
+
+    <h3>19. General Clauses</h3>
+    <div class="doc-section"><p>${d.legalGeneral.replace(/\n/g,'<br>')}</p></div>
+
+    <h3 style="text-align:center;margin-top:32px;">IN WITNESS WHEREOF</h3>
+    <p>the Parties herein have caused this Agreement to be duly executed as of the date first mentioned written above.</p>
+
+    <table>
+      <tr>
+        <td><strong>Signed Sealed & Delivered by SM:</strong><br/><br/>
+          <strong>${P(d.smName,'SM_NAME')}</strong><br/>
+          Signature: ________________________<br/>
+          Full Name: Mr. ${P(d.smSignatory,'SM_SIGNATORY')}<br/>
+          Designation: ${P(d.smDesignation,'SM_DESIGNATION')}<br/><br/>
+          <strong>Witness I — In presence of:</strong><br/>
+          Signature: ________________________<br/>
+          Full Name: ${d.wit1Name || '________________________'}<br/>
+          Address: ${d.wit1Addr || '________________________'}
+        </td>
+        <td><strong>Signed Sealed & Delivered by Client:</strong><br/><br/>
+          <strong>${P(d.clName,'CLIENT_NAME')}</strong><br/>
+          Signature: ________________________<br/>
+          Full Name: ${P(d.clSignatory,'CLIENT_SIGNATORY')}<br/>
+          Designation: ${P(d.clDesignation,'CLIENT_DESIGNATION')}<br/><br/>
+          <strong>Witness II — In presence of:</strong><br/>
+          Signature: ________________________<br/>
+          Full Name: ${d.wit2Name || '________________________'}<br/>
+          Address: ${d.wit2Addr || '________________________'}
+        </td>
+      </tr>
+    </table>
+  `;
+}
+
+// ═══════════════════════════════════════════════════
+// PLAIN TEXT
+// ═══════════════════════════════════════════════════
+
+function updatePlainText() {
+  const d = buildAgreementData();
+  const P = (val, label) => phPlain(val, label);
+  const fmt = formatDate(d.date);
+
+  let txt = '';
+  txt += d.title + '\n';
+  txt += '='.repeat(60) + '\n\n';
+  if (d.ref) txt += 'Ref: ' + d.ref + '\n\n';
+  txt += `This Agreement is made and executed on this ${fmt || '[DATE]'}\n\n`;
+  txt += `BETWEEN:\n\n`;
+  txt += `${P(d.smName,'SM_NAME')}, having its office at ${P(d.smAddress,'SM_ADDRESS')} (hereinafter called '${d.smAlias}') through its Authorized Signatory, Mr. ${P(d.smSignatory,'SM_SIGNATORY')} – ${P(d.smDesignation,'SM_DESIGNATION')}, ${P(d.smCity,'SM_CITY')}.\n\nAND\n\n`;
+  txt += `${P(d.clName,'CLIENT_NAME')},${d.clCin ? ' CIN '+d.clCin+' and' : ''} having its registered office at ${P(d.clAddress,'CLIENT_ADDRESS')} (hereinafter called "${d.clAlias}") through its Authorized Signatory, ${P(d.clSignatory,'CLIENT_SIGNATORY')}, ${P(d.clDesignation,'CLIENT_DESIGNATION')}.\n\n`;
+
+  txt += `WHEREAS the Client wants to expand its business and structure its franchise strategy...\nWHEREAS SM is having extensive knowledge and infrastructure...\n\nNow it is hereby agreed by and between the Parties as follows:\n\n`;
+
+  txt += `1. REPRESENTATION\n${'-'.repeat(40)}\n${d.svcRepresentation}\n\n`;
+  txt += `2. E-MEETINGS WITH KEY PERSONNEL\n${'-'.repeat(40)}\n${d.svcMeetings}\n\n`;
+  txt += `3. DOCUMENTATION AND LEGAL AGREEMENT\n${'-'.repeat(40)}\n${d.svcDocumentation}\n\n`;
+  txt += `4. FRANCHISE MARKETING BROCHURE\n${'-'.repeat(40)}\n${d.svcBrochure}\n\n`;
+  txt += `5. SYSTEMS AND FORMS\n${'-'.repeat(40)}\n${d.svcSystems}\n\n`;
+  txt += `6. SUPPORT PROGRAMS\n${'-'.repeat(40)}\n${d.svcSupport}\n\n`;
+  txt += `7. FRANCHISE MARKETING AND FSM SERVICES\n${'-'.repeat(40)}\n${d.svcMarketing}\n\n`;
+  txt += `8. MARKETING, ADVERTISING, EXHIBITION & LEAD MANAGEMENT\n${'-'.repeat(40)}\n${d.svcAdvertising}\n\n`;
+
+  txt += `9. PAYMENTS\n${'-'.repeat(40)}\n`;
+  txt += `I. Consulting Fee\n`;
+  txt += `   Total: Rs. ${d.feeTotal.toLocaleString('en-IN')}/- (${numToWords(d.feeTotal)} Only) + GST\n`;
+  txt += `   - Upfront on Sign-up: Rs. ${d.feeUpfront.toLocaleString('en-IN')}/- (${numToWords(d.feeUpfront)} Only) + GST\n`;
+  txt += `   - Balance: Rs. ${d.feeBalance.toLocaleString('en-IN')}/- (${numToWords(d.feeBalance)} Only) + GST, due within ${d.feeBalanceDays} days of Kit submission\n`;
+  txt += `   - Additional Model: Rs. ${d.feeAddlModel.toLocaleString('en-IN')}/- per model\n\n`;
+  txt += `II. Agreement Fee\n`;
+  txt += `   Rs. ${d.feeAgreement.toLocaleString('en-IN')}/- (${numToWords(d.feeAgreement)} Only) + GST per franchise agreement draft\n`;
+  txt += `   Additional model: Rs. ${d.feeAddlAgreement.toLocaleString('en-IN')}/- per model\n\n`;
+  txt += `III. Success Fee\n   ${buildSuccessFeeText(d, true)}\n\n`;
+  txt += `IV. FSM Fee\n   Rs. ${d.feeFsm.toLocaleString('en-IN')}/- (${numToWords(d.feeFsm)} Only) + GST per quarter (min ${d.feeFsmTenure} months)\n\n`;
+  txt += `V. Application/LoI/MoU Fee\n   Client to pass LOI/MOU/Application fees to SM. Refund window: ${d.feeRefundDays} days.\n\n`;
+  txt += `VI. Payments to: '${d.payFavor}' by ${d.payMode}, payable at ${d.payBranch}\n\n`;
+
+  txt += `10. EXPENSES\n${'-'.repeat(40)}\n${d.legalExpenses}\n\n`;
+  txt += `11. COOPERATION\n${'-'.repeat(40)}\n${d.legalCooperation}\n\n`;
+  txt += `12. CONFIDENTIALITY\n${'-'.repeat(40)}\n${d.legalConfidentiality}\n\n`;
+  txt += `13. NON-SOLICITATION\n${'-'.repeat(40)}\n${d.legalNonsolicitation.replace('[NON_SOL_YEARS]', d.valNonsol)}\n\n`;
+  txt += `14. TAXES, LEVIES, DUTIES AND OTHER CHARGES\n${'-'.repeat(40)}\n${d.legalTaxes}\n\n`;
+  txt += `15. DISCLAIMER\n${'-'.repeat(40)}\n${d.legalDisclaimer}\n\n`;
+  txt += `16. VALIDITY, TERMINATION & RENEWAL\n${'-'.repeat(40)}\n`;
+  txt += `Term: ${d.valTerm} Months | Renewal: ${d.valRenewal} Months | Notice: ${d.valNotice} days\n\n`;
+  txt += `17. NOTICE\n${'-'.repeat(40)}\n`;
+  txt += `SM: ${P(d.smName,'SM_NAME')}, Attn: ${P(d.smSignatory,'SM_SIGNATORY')}, ${P(d.smAddress,'SM_ADDRESS')}, Email: ${P(d.smEmail,'SM_EMAIL')}\n`;
+  txt += `Client: ${P(d.clName,'CLIENT_NAME')}, Attn: ${P(d.clSignatory,'CLIENT_SIGNATORY')}, ${P(d.clAddress,'CLIENT_ADDRESS')}, Email: ${P(d.clEmail,'CLIENT_EMAIL')}\n\n`;
+  txt += `18. DISPUTE RESOLUTION\n${'-'.repeat(40)}\n`;
+  txt += `Exclusive jurisdiction: ${d.dispCity}\n\n`;
+  txt += `19. GENERAL CLAUSES\n${'-'.repeat(40)}\n${d.legalGeneral}\n\n`;
+  txt += `${'='.repeat(60)}\nIN WITNESS WHEREOF\n${'='.repeat(60)}\n\n`;
+  txt += `Signed Sealed & Delivered by SM:\n`;
+  txt += `${P(d.smName,'SM_NAME')}\nSignature: ________________________\nFull Name: Mr. ${P(d.smSignatory,'SM_SIGNATORY')}\nDesignation: ${P(d.smDesignation,'SM_DESIGNATION')}\n\n`;
+  txt += `Witness I:\nFull Name: ${d.wit1Name || '________________________'}\nAddress: ${d.wit1Addr || '________________________'}\n\n`;
+  txt += `Signed Sealed & Delivered by Client:\n`;
+  txt += `${P(d.clName,'CLIENT_NAME')}\nSignature: ________________________\nFull Name: ${P(d.clSignatory,'CLIENT_SIGNATORY')}\nDesignation: ${P(d.clDesignation,'CLIENT_DESIGNATION')}\n\n`;
+  txt += `Witness II:\nFull Name: ${d.wit2Name || '________________________'}\nAddress: ${d.wit2Addr || '________________________'}\n`;
+
+  const ta = document.getElementById('plain-text-area');
+  if (ta) ta.value = txt;
+}
+
+// ═══════════════════════════════════════════════════
+// CHECKLIST
+// ═══════════════════════════════════════════════════
+
+function updateChecklist() {
+  const checks = [
+    { label: 'Agreement Date', done: !!v('agr-date') },
+    { label: 'SM Company Name', done: !!v('sm-name') },
+    { label: 'SM Address', done: !!v('sm-address') },
+    { label: 'SM Signatory Name', done: !!v('sm-signatory') },
+    { label: 'SM Email', done: !!v('sm-email') },
+    { label: 'Client Company Name', done: !!v('cl-name') },
+    { label: 'Client Address', done: !!v('cl-address') },
+    { label: 'Client Signatory Name', done: !!v('cl-signatory') },
+    { label: 'Client Designation', done: !!v('cl-designation') },
+    { label: 'Client Email', done: !!v('cl-email') },
+    { label: 'Consulting Fee Total', done: vn('fee-consulting-total') > 0 },
+    { label: 'Upfront Payment Amount', done: vn('fee-upfront') > 0 },
+    { label: 'Agreement Drafting Fee', done: vn('fee-agreement') > 0 },
+    { label: 'FSM Fee per Quarter', done: vn('fee-fsm') > 0 },
+    { label: 'Agreement Term (months)', done: !!v('val-term') },
+    { label: 'Dispute Resolution City', done: !!v('disp-city') },
+    { label: 'Witness I Name', done: !!v('wit1-name'), optional: true },
+    { label: 'Witness II Name', done: !!v('wit2-name'), optional: true },
+  ];
+
+  const done = checks.filter(c => c.done).length;
+  const required = checks.filter(c => !c.optional).length;
+  const reqDone = checks.filter(c => !c.optional && c.done).length;
+
+  const container = document.getElementById('checklist-content');
+  container.innerHTML = `
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;padding:16px;background:${reqDone===required?'#f0fdf4':'#fef3cd'};border-radius:4px;border:1px solid ${reqDone===required?'#bbf7d0':'#fde68a'};">
+      <span style="font-size:28px;">${reqDone===required?'✅':'⚠️'}</span>
+      <div>
+        <div style="font-weight:600;font-size:14px;">${reqDone===required?'All required fields complete! Ready to generate.':''+reqDone+' of '+required+' required fields completed'}</div>
+        <div style="font-size:12px;opacity:0.75;">${done} of ${checks.length} total fields filled</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      ${checks.map(c => `
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:${c.done?'#f0fdf4':'#fef8f8'};border:1px solid ${c.done?'#bbf7d0':'#fee2e2'};border-radius:4px;font-size:12.5px;">
+          <span>${c.done ? '✅' : '❌'}</span>
+          <span style="color:${c.done?'#15803d':'#b91c1c'}">${c.label} ${c.optional?'<em style="opacity:0.6">(optional)</em>':''}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════
+// GENERATE DOCX
+// ═══════════════════════════════════════════════════
+
+async function generateDocx() {
+  showToast('⏳ Building DOCX — please wait...', 'info');
+
+  // docx is loaded via unpkg UMD as window.docx
+  if (typeof window.docx === 'undefined') {
+    showToast('❌ docx library not loaded yet. Please wait a moment and try again.', 'error');
+    return;
+  }
+
+  const d = buildAgreementData();
+  const fmt = formatDate(d.date) || '[DATE]';
+
+  try {
+    const {
+      Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+      AlignmentType, WidthType, BorderStyle, HeadingLevel, PageBreak,
+      Footer, Header, TextWrappingType, TabStopType, TabStopPosition,
+    } = window.docx;
+
+    const FONT  = 'Times New Roman';
+    const SZ    = 22;   // 11pt (half-points)
+    const SZ_SM = 18;   // 9pt for footer
+
+    // ── border helpers ──────────────────────────────
+    const bSingle = { style: BorderStyle.SINGLE, size: 4, color: '333333' };
+    const bNone   = { style: BorderStyle.NONE,   size: 0, color: 'FFFFFF' };
+    const borders = { top: bSingle, bottom: bSingle, left: bSingle, right: bSingle };
+    const noBorders = { top: bNone, bottom: bNone, left: bNone, right: bNone };
+
+    // ── paragraph factory ───────────────────────────
+    // keepNext=true  → this paragraph stays with the NEXT one (used on headings)
+    // keepLines=true → all lines in this paragraph stay on same page
+    function P(text, opts = {}) {
+      const runs = [];
+      if (opts.indent) runs.push(new TextRun({ text: '', font: FONT, size: SZ }));
+      if (Array.isArray(text)) {
+        text.forEach(seg => runs.push(new TextRun({
+          text: seg.text,
+          bold: seg.bold || false,
+          italics: seg.italic || false,
+          underline: seg.underline ? {} : undefined,
+          size: seg.size || SZ,
+          font: FONT,
+        })));
+      } else {
+        runs.push(new TextRun({
+          text: String(text),
+          bold: opts.bold || false,
+          italics: opts.italic || false,
+          underline: opts.underline ? {} : undefined,
+          size: opts.size || SZ,
+          font: FONT,
+        }));
+      }
+      return new Paragraph({
+        alignment: opts.center ? AlignmentType.CENTER : AlignmentType.JUSTIFIED,
+        spacing: { before: opts.spaceBefore || 0, after: opts.spaceAfter !== undefined ? opts.spaceAfter : 140, line: 276 },
+        keepNext: opts.keepNext || false,
+        keepLines: opts.keepLines || false,
+        indent: opts.leftIndent ? { left: opts.leftIndent } : undefined,
+        children: runs,
+      });
+    }
+
+    // ── heading factory (keepNext binds it to first body para) ──
+    function H(text, level = 1) {
+      return new Paragraph({
+        keepNext: true,   // ← CRITICAL: glues heading to following paragraph
+        spacing: { before: level === 1 ? 280 : 200, after: 100, line: 276 },
+        children: [new TextRun({
+          text,
+          bold: true,
+          underline: level === 1 ? {} : undefined,
+          size: level === 1 ? 24 : SZ,
+          font: FONT,
+        })],
+      });
+    }
+
+    // ── sub-heading (bold inline, also keepNext) ────
+    function SH(text) {
+      return new Paragraph({
+        keepNext: true,
+        spacing: { before: 140, after: 80, line: 276 },
+        children: [new TextRun({ text, bold: true, size: SZ, font: FONT })],
+      });
+    }
+
+    // ── multiline text → array of Paragraphs ────────
+    function MP(text, opts = {}) {
+      return text.split('\n').filter(t => t.trim()).map((t, i, arr) => P(t, {
+        ...opts,
+        // All but last para in a block use keepNext so the block travels together
+        // unless the text is very long (>4 lines) in which case we allow breaks
+        keepNext: arr.length <= 6 && i < arr.length - 1,
+      }));
+    }
+
+    // ── empty line ───────────────────────────────────
+    const BLANK = new Paragraph({ spacing: { after: 80 }, children: [new TextRun({ text: '', font: FONT, size: SZ })] });
+
+    // ── page-break paragraph ─────────────────────────
+    function pageBreak() {
+      return new Paragraph({
+        children: [new TextRun({ children: [new PageBreak()], font: FONT, size: SZ })],
+        spacing: { after: 0 },
+      });
+    }
+
+    // ── table cell helper ────────────────────────────
+    function TC(paragraphs, opts = {}) {
+      return new TableCell({
+        borders: opts.borders || borders,
+        width: opts.width ? { size: opts.width, type: WidthType.DXA } : undefined,
+        margins: { top: 100, bottom: 100, left: 140, right: 140 },
+        shading: opts.shading ? { fill: opts.shading, type: 'clear' } : undefined,
+        children: paragraphs,
+      });
+    }
+
+    // ── 2-col notice table ───────────────────────────
+    function noticeTable() {
+      const colW = 4680;
+      function noticeCell(nameLabel, attn, addr, email) {
+        return TC([
+          P([{ text: nameLabel, bold: true }]),
+          P(`Kind Attention: ${attn}`),
+          P(addr),
+          P(`E-mail: ${email}`),
+        ], { borders, width: colW });
+      }
+      return new Table({
+        width: { size: 9360, type: WidthType.DXA },
+        columnWidths: [colW, colW],
+        rows: [
+          new TableRow({ children: [
+            noticeCell(
+              `IF TO ${d.smName || 'Sparkleminds'}:`,
+              `Mr. ${d.smSignatory || '[SM_SIGNATORY]'}`,
+              d.smAddress || '[SM_ADDRESS]',
+              d.smEmail || '[SM_EMAIL]'
+            ),
+            noticeCell(
+              `IF TO ${d.clName || '[CLIENT_NAME]'}:`,
+              d.clSignatory || '[CLIENT_SIGNATORY]',
+              d.clAddress || '[CLIENT_ADDRESS]',
+              d.clEmail || '[CLIENT_EMAIL]'
+            ),
+          ]}),
+        ],
+      });
+    }
+
+    // ── signature table helper ───────────────────────
+    function sigRows(smName, smSig, smDesig, wit1Name, wit1Addr, clName, clSig, clDesig, wit2Name, wit2Addr) {
+      const colW = 4680;
+      const sigLine = '____________________________________________';
+      const rows = [];
+
+      // Header row
+      rows.push(new TableRow({ children: [
+        TC([P([{ text: 'Signed, Sealed & Delivered by SM:', bold: true }])], { borders, width: colW, shading: 'F2F2F2' }),
+        TC([P([{ text: 'Signed, Sealed & Delivered by Client:', bold: true }])], { borders, width: colW, shading: 'F2F2F2' }),
+      ]}));
+
+      // Company name
+      rows.push(new TableRow({ children: [
+        TC([P([{ text: smName, bold: true }])], { borders, width: colW }),
+        TC([P([{ text: clName, bold: true }])], { borders, width: colW }),
+      ]}));
+
+      // Signature boxes (tall row)
+      rows.push(new TableRow({ children: [
+        TC([
+          P('Signature:', { spaceAfter: 0 }),
+          new Paragraph({ spacing: { before: 560, after: 0 }, children: [new TextRun({ text: sigLine, font: FONT, size: SZ })] }),
+        ], { borders, width: colW }),
+        TC([
+          P('Signature:', { spaceAfter: 0 }),
+          new Paragraph({ spacing: { before: 560, after: 0 }, children: [new TextRun({ text: sigLine, font: FONT, size: SZ })] }),
+        ], { borders, width: colW }),
+      ]}));
+
+      // Name
+      rows.push(new TableRow({ children: [
+        TC([P(`Full Name: Mr. ${smSig}`)], { borders, width: colW }),
+        TC([P(`Full Name: ${clSig}`)], { borders, width: colW }),
+      ]}));
+
+      // Designation
+      rows.push(new TableRow({ children: [
+        TC([P(`Designation: ${smDesig}`)], { borders, width: colW }),
+        TC([P(`Designation: ${clDesig}`)], { borders, width: colW }),
+      ]}));
+
+      // Date & Place
+      rows.push(new TableRow({ children: [
+        TC([P('Date: ____________________'), P('Place: ____________________')], { borders, width: colW }),
+        TC([P('Date: ____________________'), P('Place: ____________________')], { borders, width: colW }),
+      ]}));
+
+      // Witness header
+      rows.push(new TableRow({ children: [
+        TC([P([{ text: 'Witness I — In presence of:', bold: true }])], { borders, width: colW, shading: 'F8F8F8' }),
+        TC([P([{ text: 'Witness II — In presence of:', bold: true }])], { borders, width: colW, shading: 'F8F8F8' }),
+      ]}));
+
+      // Witness signature
+      rows.push(new TableRow({ children: [
+        TC([
+          P('Signature:', { spaceAfter: 0 }),
+          new Paragraph({ spacing: { before: 560, after: 0 }, children: [new TextRun({ text: sigLine, font: FONT, size: SZ })] }),
+        ], { borders, width: colW }),
+        TC([
+          P('Signature:', { spaceAfter: 0 }),
+          new Paragraph({ spacing: { before: 560, after: 0 }, children: [new TextRun({ text: sigLine, font: FONT, size: SZ })] }),
+        ], { borders, width: colW }),
+      ]}));
+
+      // Witness names
+      rows.push(new TableRow({ children: [
+        TC([P(`Full Name: ${wit1Name || '____________________________'}`)], { borders, width: colW }),
+        TC([P(`Full Name: ${wit2Name || '____________________________'}`)], { borders, width: colW }),
+      ]}));
+
+      // Witness addresses
+      rows.push(new TableRow({ children: [
+        TC([P(`Address: ${wit1Addr || '____________________________'}`)], { borders, width: colW }),
+        TC([P(`Address: ${wit2Addr || '____________________________'}`)], { borders, width: colW }),
+      ]}));
+
+      // Witness date
+      rows.push(new TableRow({ children: [
+        TC([P('Date: ____________________')], { borders, width: colW }),
+        TC([P('Date: ____________________')], { borders, width: colW }),
+      ]}));
+
+      return rows;
+    }
+
+    // ── per-page initials footer ─────────────────────
+    function buildFooter() {
+      const sigLine = '______________';
+      return new Footer({
+        children: [
+          new Paragraph({
+            border: { top: { style: BorderStyle.SINGLE, size: 4, color: '999999', space: 4 } },
+            spacing: { before: 80, after: 0 },
+            children: [
+              new TextRun({ text: `SM Initials: ${sigLine}`, size: SZ_SM, font: FONT }),
+              new TextRun({ text: '\t', size: SZ_SM, font: FONT }),
+              new TextRun({ text: '\t', size: SZ_SM, font: FONT }),
+              new TextRun({ text: `Client Initials: ${sigLine}`, size: SZ_SM, font: FONT }),
+            ],
+            tabStops: [
+              { type: TabStopType.CENTER, position: TabStopPosition.MAX / 2 },
+              { type: TabStopType.RIGHT,  position: TabStopPosition.MAX },
+            ],
+          }),
+        ],
+      });
+    }
+
+    // ════════════════════════════════════════════════
+    // DOCUMENT CHILDREN ARRAY
+    // ════════════════════════════════════════════════
+    const children = [];
+
+    // ── Title ────────────────────────────────────────
+    children.push(new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 360, line: 276 },
+      children: [new TextRun({ text: d.title, bold: true, underline: {}, size: 28, font: FONT })],
+    }));
+
+    children.push(P(`This Agreement is made and executed on this ${fmt}`));
+    BLANK && children.push(BLANK);
+
+    // ── Parties ──────────────────────────────────────
+    children.push(P([{ text: 'BETWEEN:', bold: true, underline: true, size: 24 }]));
+    BLANK && children.push(BLANK);
+
+    children.push(P(`${d.smName || '[SM_NAME]'}, having its office at ${d.smAddress || '[SM_ADDRESS]'} (hereinafter called '${d.smAlias}') through its Authorized Signatory, Mr. ${d.smSignatory || '[SM_SIGNATORY]'} \u2013 ${d.smDesignation || 'CEO'}, ${d.smCity || 'Bangalore'}, which expression shall, unless it be repugnant to the context or meaning thereof, be deemed to mean and include its successors in interest, legal representatives, heirs, administrators, assigns etc. of the one part.`));
+    children.push(P('AND', { bold: true, center: true, spaceBefore: 120, spaceAfter: 120 }));
+    children.push(P(`${d.clName || '[CLIENT_NAME]'},${d.clCin ? ' CIN ' + d.clCin + ' and' : ''} having its registered office at ${d.clAddress || '[CLIENT_ADDRESS]'} (hereinafter called as "${d.clAlias}") through its Authorized Signatory, ${d.clSignatory || '[CLIENT_SIGNATORY]'}, ${d.clDesignation || '[DESIGNATION]'}, which expression shall, unless it is repugnant to the context or meaning thereof, be deemed to mean and include its successors in interest, legal representatives, heirs, administrators, assigns, etc. of the other part. For the sake of brevity, the Consultant and the Company are hereinafter referred to individually as the "Party" and jointly as the "Parties".`));
+
+    children.push(BLANK);
+    children.push(P(`WHEREAS the Client wants to expand its business and structure its franchise strategy and recruitment of franchisees across India and in this regard wants to engage the services of an Expert Company who can assist the Client in finalizing the franchise strategy and thereafter recruiting franchisees on a regional, national and/or international basis.`));
+    children.push(P(`WHEREAS SM is having extensive knowledge and infrastructure and ready to provide information and services in the process of executing the franchise expansion for the Client in a phased manner.`));
+    children.push(P(`Now it is hereby agreed by and between the Parties hereto as follows:`, { bold: true }));
+    children.push(BLANK);
+
+    // ── Sections 1–8 ─────────────────────────────────
+    const sections = [
+      ['1. Representation', d.svcRepresentation],
+      ['2. E-Meetings with Key Personnel & Point of Contact', d.svcMeetings],
+      ['3. Documentation and Legal Agreement', d.svcDocumentation],
+      ['4. Franchise Marketing Brochure', d.svcBrochure],
+      ['5. Systems and Forms', d.svcSystems],
+      ['6. Support Programs', d.svcSupport],
+      ['7. Franchise Marketing and Franchise Manager Services', d.svcMarketing],
+      ['8. Marketing, Advertising, Exhibition Participation & Lead Management', d.svcAdvertising],
+    ];
+    sections.forEach(([title, text]) => {
+      children.push(H(title));
+      MP(text).forEach(p => children.push(p));
+    });
+
+    // ── Section 9: Payments ───────────────────────────
+    children.push(H('9. Payments'));
+    children.push(SH('I. Consulting Fee'));
+    children.push(P(`Client shall pay SM a consulting fee of Rs. ${d.feeTotal.toLocaleString('en-IN')}/- (${numToWords(d.feeTotal)} Only) + GST for creation of a franchise marketing kit${d.models.length ? ', covering: ' + d.models.join(', ') : ''}.`));
+    children.push(P(`(a) Upon sign up of this Agreement the Client shall pay a fee of Rs. ${d.feeUpfront.toLocaleString('en-IN')}/- (${numToWords(d.feeUpfront)} Only) + GST.`));
+    children.push(P(`(b) The Balance Fee of Rs. ${d.feeBalance.toLocaleString('en-IN')}/- (${numToWords(d.feeBalance)} Only) + GST will be paid within ${d.feeBalanceDays} (${numToWords(parseInt(d.feeBalanceDays))}) days of submission of the Kit subject to a maximum of ${d.feeRevisions} [${numToWords(parseInt(d.feeRevisions))}] revisions.`));
+    children.push(P(`(c) The balance fees in this clause are paid within forty-five days of sign up of the agreement. The workshop will be conducted within 1 week of receiving the filled in FDQ and the KIT will be submitted within three weeks of the completion of the workshop.`));
+    children.push(P(`(d) Rs. ${d.feeAddlModel.toLocaleString('en-IN')}/- (${numToWords(d.feeAddlModel)} Only) will be charged per additional FICO / FOCO / FOFO / Master Franchise model.`));
+
+    children.push(SH('II. Agreement Fee'));
+    children.push(P(`(a) SM would charge Rs. ${d.feeAgreement.toLocaleString('en-IN')}/- (${numToWords(d.feeAgreement)} Only) + GST for assistance in creation of one standard draft franchise agreement. The payment has to be done before the initiation of the said service.`));
+    children.push(P(`(b) For every additional agreement draft, Rs. ${d.feeAddlAgreement.toLocaleString('en-IN')}/- (${numToWords(d.feeAddlAgreement)} Only) would be charged per additional model.`));
+
+    children.push(SH('III. Brokerage / Success Fee'));
+    children.push(P(buildSuccessFeeText(d, true)));
+
+    children.push(SH('IV. Franchise Sales Manager Fee'));
+    children.push(P(`One Franchise Sales Manager Fee of Rs. ${d.feeFsm.toLocaleString('en-IN')}/- (${numToWords(d.feeFsm)} Only) + GST will be charged per quarter (every three months) after the approval of the franchise marketing kit. This includes marketing on FranchiseBazar.com and its social media platforms.`));
+
+    children.push(SH('V. Application / LoI / MoU Fee'));
+    children.push(P(`The Client will pay SM all the fees it collects vide its LOI/MOU/Application Form for processing the franchisee's applications. If the prospect is rejected and the amount is refunded within ${d.feeRefundDays} [${numToWords(parseInt(d.feeRefundDays))}] days, then the Client need not pay the same to SM.`));
+
+    children.push(SH('VI. Payments in Favor Of:'));
+    children.push(P(`The Client shall make all payments to SM in favor of '${d.payFavor}' by ${d.payMode} payable at ${d.payBranch}.${d.payBank ? ' Bank: ' + d.payBank + '.' : ''}${d.payAcc ? ' Account No.: ' + d.payAcc + '.' : ''}${d.payIfsc ? ' IFSC: ' + d.payIfsc + '.' : ''} All the above payments are completely non-refundable and non-adjustable against any other service.`));
+
+    // ── Sections 10–16 ───────────────────────────────
+    const legalSections = [
+      ['10. Expenses', d.legalExpenses],
+      ['11. Cooperation', d.legalCooperation],
+      ['12. Confidentiality', d.legalConfidentiality],
+      ['13. Non-Solicitation', d.legalNonsolicitation.replace('[NON_SOL_YEARS]', d.valNonsol)],
+      ['14. Taxes, Levies, Duties and Other Charges', d.legalTaxes],
+      ['15. Disclaimer', d.legalDisclaimer],
+    ];
+    legalSections.forEach(([title, text]) => {
+      children.push(H(title));
+      MP(text).forEach(p => children.push(p));
+    });
+
+    // ── Section 16: Validity ──────────────────────────
+    children.push(H('16. Validity, Termination & Renewal'));
+    children.push(P(`(I) This agreement is valid for a period of ${d.valTerm} [${numToWords(parseInt(d.valTerm))}] Months from the date of this agreement. The Client will receive the Standard SM franchise questionnaire from SM within ${d.valQdel} (${numToWords(parseInt(d.valQdel))}) working days of sign up. The questionnaire could be completed within a max period of ${d.valQcomp} weeks. The consultant will submit the first draft of the franchise marketing kit within ${d.valKit} weeks of the first consulting meeting.`));
+    children.push(P(`(II) Once the Client approves the marketing phase then all franchisees appointed by the Client within that period shall be deemed as appointed by SM.`));
+    children.push(P(`(III) All franchisees who have signed the franchise agreement with the Client after termination of this agreement and who have reached out to the Client while the agreement was in force will also be deemed as appointed by SM.`));
+    children.push(P(`(IV) The agreement would be renewed for a further period of ${d.valRenewal} [${numToWords(parseInt(d.valRenewal))}] Months once the client makes the payment for the franchise marketing services.`));
+    children.push(P(`(V) Both the parties are free to terminate the agreement by giving each other a written notice of termination effective ${d.valNotice} days from the said notice, after all payments have been cleared.`));
+
+    // ── Section 17: Notice ────────────────────────────
+    children.push(H('17. Notice'));
+    children.push(P(`All notices and other communication under this Agreement shall be in writing and sent at the addresses given herein by ${d.noticeMethod || 'speed post / courier / email'} or by electronic media.`));
+    children.push(noticeTable());
+
+    // ── Section 18: Dispute ───────────────────────────
+    children.push(H('18. Dispute Resolution'));
+    children.push(P(`The Parties to this Agreement agree and confirm that appropriate Court(s) at ${d.dispCity} alone shall have the exclusive jurisdiction to entertain any dispute, controversy or claim arising out of or relating to this Agreement, or the breach, termination or invalidity thereof.`));
+
+    // ── Section 19: General ───────────────────────────
+    children.push(H('19. General Clauses'));
+    MP(d.legalGeneral).forEach(p => children.push(p));
+
+    // ── Signature Page (page break) ───────────────────
+    children.push(pageBreak());
+
+    children.push(new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 160, line: 276 },
+      children: [new TextRun({ text: 'IN WITNESS WHEREOF', bold: true, underline: {}, size: 26, font: FONT })],
+    }));
+    children.push(P('the Parties herein have caused this Agreement to be duly executed as of the date first mentioned written above.', { center: true }));
+    children.push(BLANK);
+
+    children.push(new Table({
+      width: { size: 9360, type: WidthType.DXA },
+      columnWidths: [4680, 4680],
+      rows: sigRows(
+        d.smName || 'Sparkleminds',
+        d.smSignatory || '[SM_SIGNATORY]',
+        d.smDesignation || 'CEO',
+        d.wit1Name, d.wit1Addr,
+        d.clName || '[CLIENT_NAME]',
+        d.clSignatory || '[CLIENT_SIGNATORY]',
+        d.clDesignation || '[DESIGNATION]',
+        d.wit2Name, d.wit2Addr
+      ),
+    }));
+
+    // ════════════════════════════════════════════════
+    // BUILD & DOWNLOAD
+    // ════════════════════════════════════════════════
+    const doc = new Document({
+      sections: [{
+        properties: {
+          page: {
+            size: { width: 11906, height: 16838 }, // A4
+            margin: { top: 1260, right: 1134, bottom: 1440, left: 1440 },
+          },
+        },
+        footers: { default: buildFooter() },
+        children,
+      }],
+    });
+
+    const blob = await Packer.toBlob(doc);
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    const cName = (d.clName || 'Agreement').replace(/[^a-zA-Z0-9]/g, '_');
+    a.href     = url;
+    a.download = `FDA_${cName}_${d.date || 'Draft'}.docx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast('✅ DOCX downloaded successfully!', 'success');
+
+  } catch (err) {
+    console.error('DOCX generation error:', err);
+    showToast('❌ Error: ' + err.message, 'error');
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// COPY & PRINT
+// ═══════════════════════════════════════════════════
+
+function copyText() {
+  updatePlainText();
+  const ta = document.getElementById('plain-text-area');
+  if (ta) {
+    navigator.clipboard.writeText(ta.value).then(() => {
+      showToast('📋 Agreement text copied to clipboard!', 'success');
+    });
+  }
+}
+
+function buildPrintHTML() {
+  updatePreview();
+  const d = buildAgreementData();
+  const fmt = formatDate(d.date) || '[DATE]';
+  const P = (val, label) => (!val || !val.trim()) ? `<span style="color:#cc0000;font-style:italic;">[${label}]</span>` : val;
+
+  const smName = d.smName || 'Sparkleminds';
+  const clName = d.clName || '[CLIENT_NAME]';
+
+  // Signature strip shown at bottom of every page via fixed-position footer
+  const sigStrip = `
+    <div class="page-sig-footer">
+      <span>SM Initials: <span class="sig-line"></span></span>
+      <span class="page-num"></span>
+      <span>Client Initials: <span class="sig-line"></span></span>
+    </div>`;
+
+  // Helper: wrap a heading+content block so they don't break apart
+  function section(headingText, contentHTML) {
+    return `<div class="clause-block"><div class="clause-head">${headingText}</div><div class="clause-body">${contentHTML}</div></div>`;
+  }
+
+  const successFeeText = buildSuccessFeeText(d, true);
+
+  const htmlContent = `
+    <!-- TITLE PAGE HEADER -->
+    <div class="doc-title">${d.title}</div>
+    <p class="date-line">This Agreement is made and executed on this <strong>${fmt}</strong></p>
+    <p class="ref-line">${d.ref ? 'Ref: ' + d.ref : ''}</p>
+
+    <div class="parties-block">
+      <div class="section-label">BETWEEN:</div>
+      <p><strong>${P(d.smName,'SM_NAME')},</strong> having its office at ${P(d.smAddress,'SM_ADDRESS')} (hereinafter called <strong>'${d.smAlias}'</strong>) through its Authorized Signatory, Mr. ${P(d.smSignatory,'SM_SIGNATORY')} – ${P(d.smDesignation,'SM_DESIGNATION')}, ${P(d.smCity,'SM_CITY')}, which expression shall, unless it be repugnant to the context or meaning thereof, be deemed to mean and include its successors in interest, legal representatives, heirs, administrators, assigns etc. of the one part.</p>
+      <p class="and-divider">AND</p>
+      <p><strong>${P(d.clName,'CLIENT_NAME')},</strong>${d.clCin ? ' CIN '+d.clCin+' and' : ''} having its registered office at ${P(d.clAddress,'CLIENT_ADDRESS')} (hereinafter called as <strong>"${d.clAlias}"</strong>) through its Authorized Signatory, ${P(d.clSignatory,'CLIENT_SIGNATORY')}, ${P(d.clDesignation,'CLIENT_DESIGNATION')}, which expression shall, unless it is repugnant to the context or meaning thereof, be deemed to mean and include its successors in interest, legal representatives, heirs, administrators, assigns, etc. of the other part. For the sake of brevity, the Consultant and the Company are hereinafter referred to individually as the "Party" and jointly as the "Parties".</p>
+    </div>
+
+    <p><strong>WHEREAS</strong> the Client wants to expand its business and structure its franchise strategy and recruitment of franchisees across India and in this regard wants to engage the services of an Expert Company who can assist the Client in finalizing the franchise strategy and thereafter recruiting franchisees on a regional, national and/or international basis.</p>
+    <p><strong>WHEREAS</strong> SM is having extensive knowledge and infrastructure and ready to provide information and services in the process of executing the franchise expansion for the Client in a phased manner.</p>
+    <p><strong>Now it is hereby agreed by and between the Parties hereto as follows:</strong></p>
+
+    ${section('1. Representation', `<p>${d.svcRepresentation.replace(/\n/g,'</p><p>')}</p>`)}
+    ${section('2. E-Meetings with Key Personnel &amp; Point of Contact', `<p>${d.svcMeetings.replace(/\n/g,'</p><p>')}</p>`)}
+    ${section('3. Documentation and Legal Agreement', `<p>${d.svcDocumentation.replace(/\n/g,'</p><p>')}</p>`)}
+    ${section('4. Franchise Marketing Brochure', `<p>${d.svcBrochure.replace(/\n/g,'</p><p>')}</p>`)}
+    ${section('5. Systems and Forms', `<p>${d.svcSystems.replace(/\n/g,'</p><p>')}</p>`)}
+    ${section('6. Support Programs', `<p>${d.svcSupport.replace(/\n/g,'</p><p>')}</p>`)}
+    ${section('7. Franchise Marketing and Franchise Manager Services', `<p>${d.svcMarketing.replace(/\n/g,'</p><p>')}</p>`)}
+    ${section('8. Marketing, Advertising, Exhibition Participation &amp; Lead Management', `<p>${d.svcAdvertising.replace(/\n/g,'</p><p>')}</p>`)}
+
+    <div class="clause-block">
+      <div class="clause-head">9. Payments</div>
+      <div class="clause-body">
+        <p><strong>I. Consulting Fee</strong></p>
+        <p>Client shall pay SM a consulting fee of Rs. ${d.feeTotal.toLocaleString('en-IN')}/- (${numToWords(d.feeTotal)} Only) + GST for creation of a franchise marketing kit${d.models.length ? ', covering the following franchise models: ' + d.models.join(', ') : ''}.</p>
+        <p>(a) Upon sign up of this Agreement the Client shall pay a fee of Rs. ${d.feeUpfront.toLocaleString('en-IN')}/- (${numToWords(d.feeUpfront)} Only) + GST.</p>
+        <p>(b) The Balance Fee of Rs. ${d.feeBalance.toLocaleString('en-IN')}/- (${numToWords(d.feeBalance)} Only) + GST will be paid within ${d.feeBalanceDays} (${numToWords(parseInt(d.feeBalanceDays))}) days of submission of the Kit subject to a maximum of ${d.feeRevisions} [${numToWords(parseInt(d.feeRevisions))}] revisions.</p>
+        <p>(c) The balance fees in this clause are paid within forty-five days of sign up of the agreement.</p>
+        <p>(d) Rs. ${d.feeAddlModel.toLocaleString('en-IN')}/- (${numToWords(d.feeAddlModel)} Only) will be charged per additional FICO / FOCO / FOFO / Master Franchise model.</p>
+        <p><strong>II. Agreement Fee</strong></p>
+        <p>(a) SM would charge Rs. ${d.feeAgreement.toLocaleString('en-IN')}/- (${numToWords(d.feeAgreement)} Only) + GST for assistance in creation of one standard draft franchise agreement. The payment for the agreement fee has to be done before the initiation of the said service.</p>
+        <p>(b) For every additional agreement draft for any additional Model, Rs. ${d.feeAddlAgreement.toLocaleString('en-IN')}/- (${numToWords(d.feeAddlAgreement)} Only) would be charged per additional model.</p>
+        <p><strong>III. Brokerage / Success Fee</strong></p>
+        <p>${successFeeText}</p>
+        <p><strong>IV. Franchise Sales Manager Fee</strong></p>
+        <p>One Franchise Sales Manager Fee of Rs. ${d.feeFsm.toLocaleString('en-IN')}/- (${numToWords(d.feeFsm)} Only) + GST will be charged per quarter (every three months) after the approval of the franchise marketing kit and approval to start the franchise marketing phase. This includes marketing on FranchiseBazar.com and its social media platforms.</p>
+        <p><strong>V. Application / LoI / MoU Fee</strong></p>
+        <p>The Client will pay SM all the fees it collects vide its LOI/MOU/Application Form for processing the franchisee's applications. If the prospect does not sign the agreement, the same would be the fees payable to SM. However, if the prospect is rejected and the amount is refunded within ${d.feeRefundDays} [${numToWords(parseInt(d.feeRefundDays))}] days, then the Client need not pay the same to SM.</p>
+        <p><strong>VI. Payments in Favor Of:</strong></p>
+        <p>The Client shall make all payments to SM in favor of '${d.payFavor}' by ${d.payMode} payable at ${d.payBranch}.${d.payBank ? ' Bank: ' + d.payBank + '.' : ''}${d.payAcc ? ' Account No.: ' + d.payAcc + '.' : ''}${d.payIfsc ? ' IFSC: ' + d.payIfsc + '.' : ''} All the above payments will have to be paid at the beginning/end of each of the above phases and are completely non-refundable and non-adjustable against any other service.</p>
+      </div>
+    </div>
+
+    ${section('10. Expenses', `<p>${d.legalExpenses.replace(/\n/g,'</p><p>')}</p>`)}
+    ${section('11. Cooperation', `<p>${d.legalCooperation}</p>`)}
+    ${section('12. Confidentiality', `<p>${d.legalConfidentiality}</p>`)}
+    ${section('13. Non-Solicitation', `<p>${d.legalNonsolicitation.replace('[NON_SOL_YEARS]', d.valNonsol)}</p>`)}
+    ${section('14. Taxes, Levies, Duties and Other Charges', `<p>${d.legalTaxes}</p>`)}
+    ${section('15. Disclaimer', `<p>${d.legalDisclaimer.replace(/\n/g,'</p><p>')}</p>`)}
+
+    <div class="clause-block">
+      <div class="clause-head">16. Validity, Termination &amp; Renewal</div>
+      <div class="clause-body">
+        <p>(I) This agreement is valid for a period of ${d.valTerm} [${numToWords(parseInt(d.valTerm))}] Months from the date of this agreement and shall stand terminated at the end of the said term. The Client will receive the Standard SM franchise questionnaire from SM within ${d.valQdel} (${numToWords(parseInt(d.valQdel))}) working days of sign up. The questionnaire could be completed within a max period of ${d.valQcomp} weeks and request for the first consulting meeting within one week of submission. The consultant will submit the first draft of the franchise marketing kit within ${d.valKit} weeks of the first consulting meeting.</p>
+        <p>(II) Once the Client approves the marketing phase then all franchisees appointed by the Client within that period shall be deemed as appointed by SM.</p>
+        <p>(III) All franchisees who have signed the franchise agreement with the Client after termination of this agreement and who have reached out to the Client while the agreement was in force will also be deemed as appointed by SM.</p>
+        <p>(IV) The agreement would be renewed for a further period of ${d.valRenewal} [${numToWords(parseInt(d.valRenewal))}] Months once the client makes the payment for the franchise marketing services.</p>
+        <p>(V) Both the parties are free to terminate the agreement by giving each other a written notice of termination effective ${d.valNotice} days from the said notice, after all payments have been cleared.</p>
+      </div>
+    </div>
+
+    <div class="clause-block">
+      <div class="clause-head">17. Notice</div>
+      <div class="clause-body">
+        <p>All notices and other communication under this Agreement shall be in writing and sent at the addresses given herein either by ${d.noticeMethod} or by electronic media.</p>
+        <table class="notice-table">
+          <tr>
+            <th>IF TO <strong>${smName}</strong></th>
+            <th>IF TO <strong>${P(d.clName,'CLIENT_NAME')}</strong></th>
+          </tr>
+          <tr>
+            <td>Kind Attention: Mr. ${P(d.smSignatory,'SM_SIGNATORY')}<br/>${P(d.smAddress,'SM_ADDRESS')}<br/>E-mail: ${P(d.smEmail,'SM_EMAIL')}</td>
+            <td>Kind Attention: ${P(d.clSignatory,'CLIENT_SIGNATORY')}<br/>${P(d.clAddress,'CLIENT_ADDRESS')}<br/>E-mail: ${P(d.clEmail,'CLIENT_EMAIL')}</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    ${section('18. Dispute Resolution', `<p>The Parties to this Agreement agree and confirm that appropriate Court(s) at ${d.dispCity} alone shall have the exclusive jurisdiction to entertain any dispute, controversy or claim arising out of or relating to this Agreement, or the breach, termination or invalidity thereof.</p>`)}
+    ${section('19. General Clauses', `<p>${d.legalGeneral.replace(/\n/g,'</p><p>')}</p>`)}
+
+    <!-- SIGNATURE PAGE — always starts on new page -->
+    <div class="sig-page">
+      <div class="sig-page-title">IN WITNESS WHEREOF</div>
+      <p class="sig-page-subtitle">the Parties herein have caused this Agreement to be duly executed as of the date first mentioned written above.</p>
+
+      <table class="sig-table">
+        <tr>
+          <th colspan="1">Signed, Sealed &amp; Delivered by SM:</th>
+          <th colspan="1">Signed, Sealed &amp; Delivered by Client:</th>
+        </tr>
+        <tr>
+          <td><strong>${P(d.smName,'SM_NAME')}</strong></td>
+          <td><strong>${P(d.clName,'CLIENT_NAME')}</strong></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="sig-field-label">Signature:</div>
+            <div class="sig-box"></div>
+          </td>
+          <td>
+            <div class="sig-field-label">Signature:</div>
+            <div class="sig-box"></div>
+          </td>
+        </tr>
+        <tr>
+          <td>Full Name: Mr. ${P(d.smSignatory,'SM_SIGNATORY')}</td>
+          <td>Full Name: ${P(d.clSignatory,'CLIENT_SIGNATORY')}</td>
+        </tr>
+        <tr>
+          <td>Designation: ${P(d.smDesignation,'SM_DESIGNATION')}</td>
+          <td>Designation: ${P(d.clDesignation,'CLIENT_DESIGNATION')}</td>
+        </tr>
+        <tr>
+          <td>Date: ____________________</td>
+          <td>Date: ____________________</td>
+        </tr>
+        <tr>
+          <td>Place: ____________________</td>
+          <td>Place: ____________________</td>
+        </tr>
+      </table>
+
+      <p class="witness-label">In presence of Witnesses:</p>
+      <table class="sig-table">
+        <tr>
+          <th>Witness I (on behalf of SM)</th>
+          <th>Witness II (on behalf of Client)</th>
+        </tr>
+        <tr>
+          <td>
+            <div class="sig-field-label">Signature:</div>
+            <div class="sig-box"></div>
+          </td>
+          <td>
+            <div class="sig-field-label">Signature:</div>
+            <div class="sig-box"></div>
+          </td>
+        </tr>
+        <tr>
+          <td>Full Name: ${d.wit1Name || '____________________________'}</td>
+          <td>Full Name: ${d.wit2Name || '____________________________'}</td>
+        </tr>
+        <tr>
+          <td>Address: ${d.wit1Addr || '____________________________'}</td>
+          <td>Address: ${d.wit2Addr || '____________________________'}</td>
+        </tr>
+        <tr>
+          <td>Date: ____________________</td>
+          <td>Date: ____________________</td>
+        </tr>
+      </table>
+    </div>
+  `;
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>${d.title}${d.clName ? ' — ' + d.clName : ''}</title>
+  <style>
+    /* ── RESET & BASE ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 12pt;
+      line-height: 1.75;
+      color: #000;
+      background: #fff;
+    }
+
+    /* ── PAGE SETUP ── */
+    @page {
+      size: A4;
+      margin: 22mm 20mm 36mm 25mm;
+    }
+    @page {
+      @bottom-left {
+        content: "SM Initials: ___________";
+        font-size: 7.5pt;
+        font-family: 'Times New Roman', serif;
+        color: #555;
+        border-top: 0.5pt solid #aaa;
+        padding-top: 3pt;
+        width: 35%;
+      }
+      @bottom-center {
+        content: "Page " counter(page) " of " counter(pages);
+        font-size: 7.5pt;
+        font-family: 'Times New Roman', serif;
+        color: #555;
+        text-align: center;
+        width: 30%;
+      }
+      @bottom-right {
+        content: "Client Initials: ___________";
+        font-size: 7.5pt;
+        font-family: 'Times New Roman', serif;
+        color: #555;
+        border-top: 0.5pt solid #aaa;
+        padding-top: 3pt;
+        text-align: right;
+        width: 35%;
+      }
+    }
+
+    /* ── DOCUMENT TITLE ── */
+    .doc-title {
+      text-align: center;
+      font-size: 16pt;
+      font-weight: bold;
+      text-decoration: underline;
+      letter-spacing: 2pt;
+      text-transform: uppercase;
+      margin-bottom: 18pt;
+      margin-top: 6pt;
+    }
+    .date-line { margin-bottom: 6pt; }
+    .ref-line { font-size: 10pt; color: #555; margin-bottom: 6pt; }
+
+    /* ── PARTIES BLOCK ── */
+    .parties-block {
+      margin: 12pt 0;
+      padding: 10pt 14pt;
+      border-left: 3pt solid #666;
+    }
+    .parties-block p { margin-bottom: 8pt; text-align: justify; }
+    .section-label {
+      font-weight: bold;
+      font-size: 13pt;
+      text-decoration: underline;
+      margin-bottom: 8pt;
+    }
+    .and-divider {
+      font-weight: bold;
+      text-align: center;
+      font-size: 13pt;
+      margin: 10pt 0;
+    }
+
+    /* ── CLAUSE BLOCKS — prevent orphan headings ── */
+    .clause-block {
+      margin: 10pt 0 8pt;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      orphans: 4;
+      widows: 4;
+    }
+    /* If block is too long for one page, allow break after heading at minimum */
+    .clause-block.allow-break {
+      page-break-inside: auto;
+    }
+    .clause-head {
+      font-weight: bold;
+      font-size: 12pt;
+      margin-bottom: 5pt;
+      padding-bottom: 2pt;
+      border-bottom: 0.5pt solid #ccc;
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+    .clause-body {
+      page-break-before: avoid;
+      break-before: avoid;
+    }
+    .clause-body p {
+      margin-bottom: 6pt;
+      text-align: justify;
+      orphans: 3;
+      widows: 3;
+    }
+
+    /* ── GENERAL PARAS ── */
+    p {
+      text-align: justify;
+      margin-bottom: 7pt;
+      orphans: 3;
+      widows: 3;
+    }
+
+    /* ── NOTICE TABLE ── */
+    .notice-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8pt 0;
+      page-break-inside: avoid;
+    }
+    .notice-table th, .notice-table td {
+      border: 1pt solid #333;
+      padding: 7pt 10pt;
+      vertical-align: top;
+      width: 50%;
+      font-size: 11pt;
+    }
+    .notice-table th {
+      background: #f2f2f2;
+      font-weight: bold;
+      font-size: 10.5pt;
+    }
+
+    /* ── SIGNATURE PAGE ── */
+    .sig-page {
+      page-break-before: always;
+      break-before: page;
+      padding-top: 8pt;
+    }
+    .sig-page-title {
+      text-align: center;
+      font-size: 14pt;
+      font-weight: bold;
+      text-decoration: underline;
+      margin-bottom: 8pt;
+      text-transform: uppercase;
+      letter-spacing: 1pt;
+    }
+    .sig-page-subtitle {
+      text-align: center;
+      font-style: italic;
+      margin-bottom: 20pt;
+    }
+    .witness-label {
+      font-weight: bold;
+      font-size: 11pt;
+      margin: 18pt 0 8pt;
+      text-decoration: underline;
+    }
+    .sig-table {
+      width: 100%;
+      border-collapse: collapse;
+      page-break-inside: avoid;
+      margin-bottom: 0;
+    }
+    .sig-table th {
+      border: 1pt solid #333;
+      padding: 8pt 10pt;
+      background: #f5f5f5;
+      font-weight: bold;
+      font-size: 11pt;
+      width: 50%;
+    }
+    .sig-table td {
+      border: 1pt solid #333;
+      padding: 8pt 10pt;
+      vertical-align: top;
+      width: 50%;
+      font-size: 11pt;
+    }
+    .sig-box {
+      height: 36pt;
+      border-bottom: 1pt solid #333;
+      margin-top: 4pt;
+      width: 80%;
+    }
+    .sig-field-label {
+      font-size: 10pt;
+      color: #444;
+      margin-top: 4pt;
+    }
+
+    /* ── PLACEHOLDER STYLING ── */
+    .placeholder-text { color: #cc0000; font-style: italic; }
+  </style>
+</head>
+<body>
+  ${htmlContent}
+</body>
+</html>`;
+}
+
+function printAgreement() {
+  const html = buildPrintHTML();
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+  // Small delay so fonts/layout render before print dialog
+  setTimeout(() => { win.focus(); win.print(); }, 600);
+}
+
+// ═══════════════════════════════════════════════════
+// SAVE / LOAD DRAFT
+// ═══════════════════════════════════════════════════
+
+function saveDraft() {
+  const inputs = document.querySelectorAll('input, select, textarea');
+  const data = {};
+  inputs.forEach(el => { if (el.id) data[el.id] = el.value; });
+
+  const clauseIds = [...SERVICE_CLAUSES, ...LEGAL_CLAUSES].map(c => c.id);
+  clauseIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) data['__clause__' + id] = el.innerHTML;
+  });
+
+  const json = JSON.stringify(data);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'fda_draft_' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('💾 Draft saved as JSON file!', 'success');
+}
+
+function loadSaved() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        Object.entries(data).forEach(([key, val]) => {
+          if (key.startsWith('__clause__')) {
+            const id = key.replace('__clause__','');
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = val;
+          } else {
+            const el = document.getElementById(key);
+            if (el) { el.value = val; if (val && val.trim()) el.classList.add('filled'); }
+          }
+        });
+        updateAllAmountWords();
+        updateFeeTable();
+        updateProgress();
+        showToast('✅ Draft loaded successfully!', 'success');
+      } catch(err) {
+        showToast('❌ Invalid draft file.', 'error');
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// ═══════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════
+
+function showToast(msg, type = 'info') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.animation = 'fadeOut 0.4s ease forwards';
+    setTimeout(() => toast.remove(), 400);
+  }, 3500);
+}
+
+// Init amount words on load
+window.addEventListener('DOMContentLoaded', () => {
+  updateAllAmountWords();
+  updateFeeTable();
+});
+</script>
+</body>
+</html>
